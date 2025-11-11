@@ -1,8 +1,6 @@
 
-
-import axios from 'axios';
 import { NextResponse } from 'next/server';
-import { LocationInput, getWeatherData, getForecastData } from '@/services/weatherService';
+import { getApiClient } from '@/lib/api-client';
 
 // Force Node.js runtime to ensure env vars are available
 export const runtime = 'nodejs';
@@ -16,53 +14,83 @@ export async function GET(req: Request) {
 
   // Check for valid parameters
   if (!city && (!lat || !lon)) {
-    return NextResponse.json({ error: 'Either city or coordinates (lat/lon) are required' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Either city or coordinates (lat/lon) are required' },
+      { status: 400 }
+    );
   }
 
   // Validate coordinate values if provided
   if (lat !== null && lon !== null) {
     const latitude = parseFloat(lat);
     const longitude = parseFloat(lon);
-    if (isNaN(latitude) || isNaN(longitude) || 
-        latitude < -90 || latitude > 90 || 
-        longitude < -180 || longitude > 180) {
+    if (
+      isNaN(latitude) ||
+      isNaN(longitude) ||
+      latitude < -90 ||
+      latitude > 90 ||
+      longitude < -180 ||
+      longitude > 180
+    ) {
       return NextResponse.json({ error: 'Invalid coordinates' }, { status: 400 });
     }
   }
 
-  // Read env vars at request time
-  const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
-  const BASE_URL = process.env.NEXT_PUBLIC_OPENWEATHER_BASE_URL;
-
-  if (!API_KEY || !BASE_URL) {
-    console.error('Missing API_KEY or BASE_URL');
-    return NextResponse.json({ error: 'Server misconfiguration: API key or base URL missing' }, { status: 500 });
-  }
-
   try {
-    const location = city 
-      ? { type: 'city' as const, city }
-      : { type: 'coordinates' as const, lat: parseFloat(lat!), lon: parseFloat(lon!) };
+    const apiClient = getApiClient();
 
-    const [weatherRes, forecastRes] = await Promise.all([
-      axios.get(location.type === 'city'
-        ? `${BASE_URL}/weather?q=${encodeURIComponent(city!)}&units=${units}&appid=${API_KEY}`
-        : `${BASE_URL}/weather?lat=${location.lat}&lon=${location.lon}&units=${units}&appid=${API_KEY}`),
-      axios.get(location.type === 'city'
-        ? `${BASE_URL}/forecast?q=${encodeURIComponent(city!)}&units=${units}&appid=${API_KEY}`
-        : `${BASE_URL}/forecast?lat=${location.lat}&lon=${location.lon}&units=${units}&appid=${API_KEY}`)
+    // Build query parameters
+    const weatherParams: Record<string, string> = {
+      units,
+    };
+
+    const forecastParams: Record<string, string> = {
+      units,
+    };
+
+    if (city) {
+      weatherParams.q = city;
+      forecastParams.q = city;
+    } else {
+      weatherParams.lat = lat!;
+      weatherParams.lon = lon!;
+      forecastParams.lat = lat!;
+      forecastParams.lon = lon!;
+    }
+
+    // Make parallel requests for weather and forecast
+    const [weatherData, forecastData] = await Promise.all([
+      apiClient.get('/weather', { params: weatherParams }),
+      apiClient.get('/forecast', { params: forecastParams }),
     ]);
 
-    return NextResponse.json({ weather: weatherRes.data, forecast: forecastRes.data });
-  } catch (err) {
-    if (axios.isAxiosError(err)) {
-      const statusCode = err.response?.status === 404 ? 404 : 502;
-      const message = err.response?.status === 404 
-        ? 'City not found'
-        : 'Failed to fetch weather data';
-      return NextResponse.json({ error: message }, { status: statusCode });
+    // Get coordinates for AQI (from weather data response)
+    const aqiLat = weatherData.coord?.lat || (city ? null : parseFloat(lat!));
+    const aqiLon = weatherData.coord?.lon || (city ? null : parseFloat(lon!));
+
+    // Fetch AQI data if coordinates are available
+    let aqiData = null;
+    if (aqiLat !== null && aqiLon !== null && !isNaN(aqiLat) && !isNaN(aqiLon)) {
+      try {
+        aqiData = await apiClient.get('/air_pollution', {
+          params: { lat: aqiLat.toString(), lon: aqiLon.toString() },
+        });
+      } catch (aqiError) {
+        // AQI is optional, so we don't fail the entire request if it fails
+        console.warn('Failed to fetch AQI data:', aqiError);
+      }
     }
-    console.error('Error fetching data:', err);
-    return NextResponse.json({ error: 'Failed to fetch weather data' }, { status: 502 });
+
+    return NextResponse.json({
+      weather: weatherData,
+      forecast: forecastData,
+      aqi: aqiData,
+    });
+  } catch (err) {
+    // Error is already transformed by the API client
+    const errorMessage = err instanceof Error ? err.message : 'Failed to fetch weather data';
+    const statusCode = errorMessage.includes('not found') ? 404 : 502;
+
+    return NextResponse.json({ error: errorMessage }, { status: statusCode });
   }
 }

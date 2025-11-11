@@ -1,14 +1,14 @@
 import axios from 'axios';
 
-const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY;
-const BASE_URL = process.env.NEXT_PUBLIC_OPENWEATHER_BASE_URL;
-
-if (!API_KEY || !BASE_URL) {
-  console.error('OpenWeather API key or base URL is missing!');
-}
+// We'll use our API route as a proxy to keep the API key secure
+const API_URL = '/api/weather';
 
 export interface WeatherData {
   name: string;
+  coord?: {
+    lat: number;
+    lon: number;
+  };
   main: {
     temp: number;
     feels_like: number;
@@ -38,57 +38,68 @@ export interface ForecastData {
   }>;
 }
 
+export interface AQIData {
+  coord: {
+    lon: number;
+    lat: number;
+  };
+  list: Array<{
+    main: {
+      aqi: number; // 1 = Good, 2 = Fair, 3 = Moderate, 4 = Poor, 5 = Very Poor
+    };
+    components: {
+      co: number; // Carbon monoxide
+      no: number; // Nitrogen monoxide
+      no2: number; // Nitrogen dioxide
+      o3: number; // Ozone
+      so2: number; // Sulphur dioxide
+      pm2_5: number; // Fine particles
+      pm10: number; // Coarse particles
+      nh3: number; // Ammonia
+    };
+    dt: number;
+  }>;
+}
+
 export type LocationInput =
   | { type: 'city'; city: string }
   | { type: 'coordinates'; lat: number; lon: number };
 
-// Fetch current weather
+// Fetch weather data through our API route
 export const getWeatherData = async (
   location: LocationInput,
   units: 'metric' | 'imperial' = 'metric'
 ) => {
-  if (!API_KEY || !BASE_URL) {
-    throw new Error('API key or Base URL is missing!');
-  }
-
-  const endpoint = location.type === 'city'
-    ? `${BASE_URL}/weather?q=${encodeURIComponent(location.city)}&appid=${API_KEY}&units=${units}`
-    : `${BASE_URL}/weather?lat=${location.lat}&lon=${location.lon}&appid=${API_KEY}&units=${units}`;
-
   try {
-    const response = await axios.get(endpoint);
-    return response.data as WeatherData;
+    const params = location.type === 'city'
+      ? { city: location.city, units }
+      : { lat: location.lat, lon: location.lon, units };
+
+    const response = await axios.get(API_URL, { params });
+    return response.data.weather as WeatherData;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message || 'Failed to fetch weather data'
-      );
+      throw new Error(error.response?.data?.error || 'Failed to fetch weather data');
     }
     throw new Error('Failed to fetch weather data');
   }
 };
 
-// Fetch forecast
+// Fetch forecast through our API route
 export const getForecastData = async (
   location: LocationInput,
   units: 'metric' | 'imperial' = 'metric'
 ) => {
-  if (!API_KEY || !BASE_URL) {
-    throw new Error('API key or Base URL is missing!');
-  }
-
-  const endpoint = location.type === 'city'
-    ? `${BASE_URL}/forecast?q=${encodeURIComponent(location.city)}&appid=${API_KEY}&units=${units}`
-    : `${BASE_URL}/forecast?lat=${location.lat}&lon=${location.lon}&appid=${API_KEY}&units=${units}`;
-
   try {
-    const response = await axios.get(endpoint);
-    return response.data as ForecastData;
+    const params = location.type === 'city'
+      ? { city: location.city, units }
+      : { lat: location.lat, lon: location.lon, units };
+
+    const response = await axios.get(API_URL, { params });
+    return response.data.forecast as ForecastData;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message || 'Failed to fetch forecast data'
-      );
+      throw new Error(error.response?.data?.error || 'Failed to fetch forecast data');
     }
     throw new Error('Failed to fetch forecast data');
   }

@@ -1,18 +1,10 @@
 'use client';
 
-import { ForecastData } from '@/services/weatherService';
+import { ForecastData } from '../services/weatherService';
 
 interface DailyForecastProps {
   forecastData: ForecastData | null;
   units: 'metric' | 'imperial';
-}
-
-interface DayForecast {
-  date: Date;
-  temps: number[];
-  min: number;
-  max: number;
-  weather: { main: string; description: string; icon: string };
 }
 
 // Helper function to determine weather severity for consistent icons
@@ -33,7 +25,7 @@ export default function DailyForecast({ forecastData, units }: DailyForecastProp
   if (!forecastData?.list) return null;
 
   // Group forecast data by day and find min/max temperatures
-  const dailyData = forecastData.list.reduce<Record<string, DayForecast>>((acc, item) => {
+  const dailyData = forecastData.list.reduce((acc: Record<string, any>, item: any) => {
     const date = new Date(item.dt * 1000);
     const dateKey = date.toLocaleDateString();
     
@@ -58,10 +50,24 @@ export default function DailyForecast({ forecastData, units }: DailyForecastProp
     }
 
     return acc;
-  }, {});
+  }, {} as Record<string, {
+    date: Date;
+    temps: number[];
+    min: number;
+    max: number;
+    weather: { main: string; description: string; icon: string };
+  }>);
+
+  type DayForecast = {
+    date: Date;
+    temps: number[];
+    min: number;
+    max: number;
+    weather: { main: string; description: string; icon: string };
+  };
 
   // Get next 7 days
-  const sevenDayForecast: DayForecast[] = Object.values(dailyData)
+  const sevenDayForecast = Object.values(dailyData)
     .sort((a, b) => a.date.getTime() - b.date.getTime())
     .slice(0, 7);
 
@@ -74,7 +80,7 @@ export default function DailyForecast({ forecastData, units }: DailyForecastProp
     <div className="mt-8">
       <h3 className="text-xl font-semibold mb-4 text-white">7-Day Forecast</h3>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-        {sevenDayForecast.map((day: DayForecast) => (
+        {sevenDayForecast.map((day) => (
           <div
             key={day.date.toISOString()}
             className="bg-white/10 rounded-lg p-4 backdrop-blur-sm hover:bg-white/20 transition-colors"
@@ -95,7 +101,7 @@ export default function DailyForecast({ forecastData, units }: DailyForecastProp
               />
               <div className="text-center w-full">
                 <div className="flex justify-between items-center mt-2">
-                  <span className="text-sm text-white/80">{Math.round(day.min)}°{units === 'metric' ? 'C' : 'F'}</span>
+                  <span className="text-sm text-white/80">{Math.round(day.min)}°</span>
                   <div className="h-1 w-16 mx-2 bg-white/20 rounded-full">
                     <div
                       className="h-full bg-white/40 rounded-full"
@@ -104,7 +110,7 @@ export default function DailyForecast({ forecastData, units }: DailyForecastProp
                       }}
                     />
                   </div>
-                  <span className="text-sm text-white/80">{Math.round(day.max)}°{units === 'metric' ? 'C' : 'F'}</span>
+                  <span className="text-sm text-white/80">{Math.round(day.max)}°</span>
                 </div>
                 <p className="text-sm text-white/80 capitalize mt-1">
                   {day.weather.description}

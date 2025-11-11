@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { ForecastData } from '@/services/weatherService';
+import { ForecastData } from '../services/weatherService';
 
 interface HourlyForecastProps {
   forecastData: ForecastData | null;
