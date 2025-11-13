@@ -9,7 +9,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, useCallback } from 'react';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import AppBar from '@/components/AppBar';
 import { COLORS, GLASSMORPHISM, TYPOGRAPHY, SPACING } from '@/src/utils/theme';
@@ -19,13 +19,13 @@ import { MapEventHandler } from '@/src/components/map/MapEventHandler';
 import { WeatherService } from '@/src/services/weather.service';
 
 // Dynamically import Leaflet components to avoid SSR issues
-const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false });
+const MapContainer = dynamicImport(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false });
 
-const TileLayer = dynamic(() => import('react-leaflet').then((mod) => mod.TileLayer), { ssr: false });
-const Marker = dynamic(() => import('react-leaflet').then((mod) => mod.Marker), { ssr: false });
-const Popup = dynamic(() => import('react-leaflet').then((mod) => mod.Popup), { ssr: false });
-const LayersControl = dynamic(() => import('react-leaflet').then((mod) => mod.LayersControl), { ssr: false });
-const ZoomControl = dynamic(() => import('react-leaflet').then((mod) => mod.ZoomControl), { ssr: false });
+const TileLayer = dynamicImport(() => import('react-leaflet').then((mod) => mod.TileLayer), { ssr: false });
+const Marker = dynamicImport(() => import('react-leaflet').then((mod) => mod.Marker), { ssr: false });
+const Popup = dynamicImport(() => import('react-leaflet').then((mod) => mod.Popup), { ssr: false });
+const LayersControl = dynamicImport(() => import('react-leaflet').then((mod) => mod.LayersControl), { ssr: false });
+const ZoomControl = dynamicImport(() => import('react-leaflet').then((mod) => mod.ZoomControl), { ssr: false });
 
 // Leaflet CSS will be loaded dynamically in useEffect
 
@@ -52,7 +52,6 @@ export default function WeatherMapPage() {
     
     // Load Leaflet CSS and fix icon issue dynamically
     Promise.all([
-      import('leaflet/dist/leaflet.css'),
       import('leaflet').then((L) => {
         delete (L.default.Icon.Default.prototype as any)._getIconUrl;
         L.default.Icon.Default.mergeOptions({
@@ -64,6 +63,14 @@ export default function WeatherMapPage() {
     ]).then(() => {
       setMounted(true);
     });
+    
+    // Load CSS separately
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.7.1/dist/leaflet.css';
+    link.integrity = 'sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==';
+    link.crossOrigin = '';
+    document.head.appendChild(link);
     
     // Get coordinates from URL params if available
     const urlLat = searchParams.get('lat');
