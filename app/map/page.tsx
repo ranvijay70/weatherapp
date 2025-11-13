@@ -14,6 +14,7 @@ import 'leaflet/dist/leaflet.css';
 import { COLORS, GLASSMORPHISM, TYPOGRAPHY, SPACING } from '@/src/utils/theme';
 import { LocationService } from '@/src/services/location.service';
 import { MapSearch } from '@/src/components/map/MapSearch';
+import { MapEventHandler } from '@/src/components/map/MapEventHandler';
 import { WeatherService } from '@/src/services/weather.service';
 
 // Fix for default marker icon in Leaflet with Next.js
@@ -149,22 +150,30 @@ export default function WeatherMapPage() {
     }
   }, []);
 
-  const handleMapClick = useCallback(async (e: any) => {
-    const { lat, lng } = e.latlng;
-    setSelectedLocation({ name: 'Selected Location', lat, lon: lng });
+  const handleMapClick = useCallback(async (lat: number, lon: number) => {
+    setSelectedLocation({ name: 'Selected Location', lat, lon });
     setLat(lat);
-    setLon(lng);
+    setLon(lon);
 
     // Fetch weather for clicked location
     setLoadingWeather(true);
     try {
-      const data = await WeatherService.getWeatherByCoordinates(lat, lng);
+      const data = await WeatherService.getWeatherByCoordinates(lat, lon);
       setWeatherInfo(data.weather);
     } catch (error) {
       console.error('Failed to fetch weather:', error);
     } finally {
       setLoadingWeather(false);
     }
+  }, []);
+
+  const handleZoomChange = useCallback((newZoom: number) => {
+    setZoom(newZoom);
+  }, []);
+
+  const handleMoveEnd = useCallback((newLat: number, newLon: number) => {
+    setLat(newLat);
+    setLon(newLon);
   }, []);
 
   if (!mounted) {
@@ -414,19 +423,12 @@ export default function WeatherMapPage() {
           style={{ height: '100%', width: '100%', zIndex: 0 }}
           className="z-0"
           zoomControl={false}
-          whenReady={(mapInstance) => {
-            const map = mapInstance.target;
-            map.on('click', handleMapClick);
-            map.on('zoomend', () => {
-              setZoom(map.getZoom());
-            });
-            map.on('moveend', () => {
-              const center = map.getCenter();
-              setLat(center.lat);
-              setLon(center.lng);
-            });
-          }}
         >
+          <MapEventHandler
+            onMapClick={handleMapClick}
+            onZoomChange={handleZoomChange}
+            onMoveEnd={handleMoveEnd}
+          />
           <TileLayer
             attribution={
               baseMap === 'satellite'
