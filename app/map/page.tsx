@@ -8,7 +8,7 @@
 // Force dynamic rendering to prevent SSR issues
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import dynamicImport from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import AppBar from '@/components/AppBar';
@@ -32,7 +32,7 @@ const ZoomControl = dynamicImport(() => import('react-leaflet').then((mod) => mo
 type BaseMapType = 'standard' | 'satellite' | 'terrain';
 type WeatherLayerType = 'temperature' | 'precipitation' | 'wind' | 'clouds' | 'pressure' | null;
 
-export default function WeatherMapPage() {
+function WeatherMapContent() {
   const [mounted, setMounted] = useState(false);
   const [baseMap, setBaseMap] = useState<BaseMapType>('satellite');
   const [weatherLayer, setWeatherLayer] = useState<WeatherLayerType>(null);
