@@ -24,8 +24,11 @@ A responsive weather application built with Next.js App Router and Tailwind CSS.
 2. Create `.env.local` in the project root:
    ```env
    OPENWEATHER_BASE_URL=https://api.openweathermap.org/data/2.5
+   OPENWEATHER_GEO_BASE_URL=https://api.openweathermap.org/geo/1.0
    OPENWEATHER_API_KEY=YOUR_OPENWEATHER_API_KEY
    ```
+   
+   **Note:** `OPENWEATHER_GEO_BASE_URL` is optional (defaults to `https://api.openweathermap.org/geo/1.0` if not provided)
 3. Run the development server:
    ```bash
    npm run dev
@@ -83,8 +86,9 @@ Mobile considerations:
 - Minimal, meaningful comments and small, focused components
 
 ### Environment Variables
-- `OPENWEATHER_BASE_URL` (e.g., `https://api.openweathermap.org/data/2.5`)
-- `OPENWEATHER_API_KEY` (required)
+- `OPENWEATHER_BASE_URL` (required) - Base URL for weather API (e.g., `https://api.openweathermap.org/data/2.5`)
+- `OPENWEATHER_GEO_BASE_URL` (optional) - Base URL for geocoding API (defaults to `https://api.openweathermap.org/geo/1.0`)
+- `OPENWEATHER_API_KEY` (required) - Your OpenWeatherMap API key
 
 ### Scripts
 ```json

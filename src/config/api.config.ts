@@ -1,9 +1,18 @@
 /**
  * Centralized API Configuration
  * Single source of truth for API keys, URLs, and endpoints
+ * 
+ * All configuration values come from environment variables only (no hardcoded defaults)
+ * This ensures proper configuration management across different environments
  */
 
-// Environment variables - validated at runtime (only on server-side)
+/**
+ * Get environment variable value
+ * @param key - Environment variable key
+ * @param defaultValue - Optional default value (only used for optional configs)
+ * @returns Environment variable value
+ * @throws Error if required variable is missing (server-side only)
+ */
 const getEnvVar = (key: string, defaultValue?: string): string => {
   // Only validate on server-side (Node.js environment)
   if (typeof window === 'undefined') {
@@ -14,10 +23,13 @@ const getEnvVar = (key: string, defaultValue?: string): string => {
     return value;
   }
   // On client-side, return empty string (shouldn't be used)
+  // This prevents client-side code from accessing env vars
   return defaultValue || '';
 };
 
-// Lazy-load configuration to avoid client-side evaluation
+/**
+ * OpenWeather API Configuration Type
+ */
 type OpenWeatherConfig = {
   BASE_URL: string;
   GEO_BASE_URL: string;
@@ -29,20 +41,29 @@ type OpenWeatherConfig = {
   };
 };
 
+// Cache for configuration (lazy-loaded)
 let cachedConfig: OpenWeatherConfig | null = null;
 
+/**
+ * Get OpenWeather API configuration
+ * Lazy-loads configuration to avoid client-side evaluation
+ * All values come from environment variables (no hardcoded defaults for required values)
+ * 
+ * @returns OpenWeatherConfig object
+ */
 const getOpenWeatherConfig = (): OpenWeatherConfig => {
+  // Return cached config if already loaded
   if (cachedConfig) {
     return cachedConfig;
   }
 
-  // Only create config on server-side
+  // Client-side guard: return placeholder (should never be used)
+  // API client functions should prevent client-side usage
   if (typeof window !== 'undefined') {
-    // Client-side: return a placeholder config (shouldn't be used)
     cachedConfig = {
-      BASE_URL: 'https://api.openweathermap.org/data/2.5',
-      GEO_BASE_URL: 'https://api.openweathermap.org/geo/1.0',
-      API_KEY: '',
+      BASE_URL: '', // Placeholder - should not be used
+      GEO_BASE_URL: '', // Placeholder - should not be used
+      API_KEY: '', // Placeholder - should not be used
       TIMEOUT: 10000,
       RETRY_CONFIG: {
         retries: 3,
@@ -52,21 +73,32 @@ const getOpenWeatherConfig = (): OpenWeatherConfig => {
     return cachedConfig;
   }
 
-  // Server-side: validate and return real config
+  // Server-side: Load configuration from environment variables only
+  // Required variables will throw error if missing
   cachedConfig = {
-    BASE_URL: getEnvVar('OPENWEATHER_BASE_URL', 'https://api.openweathermap.org/data/2.5'),
-    GEO_BASE_URL: 'https://api.openweathermap.org/geo/1.0',
-    API_KEY: getEnvVar('OPENWEATHER_API_KEY'),
-    TIMEOUT: 10000, // 10 seconds
+    BASE_URL: getEnvVar('OPENWEATHER_BASE_URL'), // Required - no default
+    GEO_BASE_URL: getEnvVar('OPENWEATHER_GEO_BASE_URL', 'https://api.openweathermap.org/geo/1.0'), // Optional - has sensible default
+    API_KEY: getEnvVar('OPENWEATHER_API_KEY'), // Required - no default
+    TIMEOUT: 10000, // 10 seconds - hardcoded as it's a constant
     RETRY_CONFIG: {
-      retries: 3,
-      retryDelay: 1000,
+      retries: 3, // Hardcoded as it's a constant
+      retryDelay: 1000, // Hardcoded as it's a constant
     },
   };
   return cachedConfig;
 };
 
-// Export getter function instead of direct object
+/**
+ * OpenWeather API Configuration Proxy
+ * 
+ * Uses Proxy to lazy-load configuration only when properties are accessed.
+ * This prevents environment variable access during module evaluation,
+ * which is important for Next.js client/server boundary.
+ * 
+ * Usage:
+ *   const baseUrl = OPENWEATHER_CONFIG.BASE_URL;
+ *   const apiKey = OPENWEATHER_CONFIG.API_KEY;
+ */
 export const OPENWEATHER_CONFIG = new Proxy({} as OpenWeatherConfig, {
   get(target, prop) {
     const config = getOpenWeatherConfig();
@@ -74,6 +106,6 @@ export const OPENWEATHER_CONFIG = new Proxy({} as OpenWeatherConfig, {
   },
 });
 
-// Re-export constants from separate file (client-safe)
+// Re-export client-safe constants (no environment variables)
 export { IP_LOCATION_API, API_ENDPOINTS, CLIENT_API_ROUTES } from './api.constants';
 
