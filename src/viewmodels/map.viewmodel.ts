@@ -25,15 +25,23 @@ export interface MapState {
 }
 
 export class MapViewModel {
-  private state: MapState;
-  private setState: React.Dispatch<React.SetStateAction<MapState>>;
+  private _state: MapState;
+  private _setState: React.Dispatch<React.SetStateAction<MapState>>;
 
   constructor(
     state: MapState,
     setState: React.Dispatch<React.SetStateAction<MapState>>
   ) {
-    this.state = state;
-    this.setState = setState;
+    this._state = state;
+    this._setState = setState;
+  }
+
+  /**
+   * Update state reference (for hook usage)
+   */
+  updateStateRef(state: MapState, setState: React.Dispatch<React.SetStateAction<MapState>>): void {
+    this._state = state;
+    this._setState = setState;
   }
 
   /**
@@ -41,7 +49,7 @@ export class MapViewModel {
    */
   async initializeLocation(urlLat?: string | null, urlLon?: string | null): Promise<void> {
     if (urlLat && urlLon) {
-      this.setState((prev) => ({
+      this._setState((prev) => ({
         ...prev,
         lat: parseFloat(urlLat),
         lon: parseFloat(urlLon),
@@ -51,7 +59,7 @@ export class MapViewModel {
 
     try {
       const coords = await LocationService.getLocationWithFallback();
-      this.setState((prev) => ({
+      this._setState((prev) => ({
         ...prev,
         lat: coords.lat,
         lon: coords.lon,
@@ -66,7 +74,7 @@ export class MapViewModel {
    * Handle location selection from search
    */
   async handleLocationSelect(lat: number, lon: number, name: string): Promise<void> {
-    this.setState((prev) => ({
+    this._setState((prev) => ({
       ...prev,
       selectedLocation: { name, lat, lon },
       lat,
@@ -81,7 +89,7 @@ export class MapViewModel {
    * Handle map click
    */
   async handleMapClick(lat: number, lon: number): Promise<void> {
-    this.setState((prev) => ({
+    this._setState((prev) => ({
       ...prev,
       selectedLocation: { name: 'Selected Location', lat, lon },
       lat,
@@ -95,18 +103,18 @@ export class MapViewModel {
    * Fetch weather for a location
    */
   private async fetchWeatherForLocation(lat: number, lon: number): Promise<void> {
-    this.setState((prev) => ({ ...prev, loadingWeather: true }));
+    this._setState((prev) => ({ ...prev, loadingWeather: true }));
 
     try {
       const data = await WeatherService.getWeatherByCoordinates(lat, lon);
-      this.setState((prev) => ({
+      this._setState((prev) => ({
         ...prev,
         weatherInfo: data.weather,
         loadingWeather: false,
       }));
     } catch (error) {
       console.error('Failed to fetch weather:', error);
-      this.setState((prev) => ({
+      this._setState((prev) => ({
         ...prev,
         weatherInfo: null,
         loadingWeather: false,
@@ -118,56 +126,56 @@ export class MapViewModel {
    * Update zoom level
    */
   setZoom(zoom: number): void {
-    this.setState((prev) => ({ ...prev, zoom }));
+    this._setState((prev) => ({ ...prev, zoom }));
   }
 
   /**
    * Update map center
    */
   setCenter(lat: number, lon: number): void {
-    this.setState((prev) => ({ ...prev, lat, lon }));
+    this._setState((prev) => ({ ...prev, lat, lon }));
   }
 
   /**
    * Update base map type
    */
   setBaseMap(baseMap: 'standard' | 'satellite' | 'terrain'): void {
-    this.setState((prev) => ({ ...prev, baseMap }));
+    this._setState((prev) => ({ ...prev, baseMap }));
   }
 
   /**
    * Update weather layer
    */
   setWeatherLayer(layer: 'temperature' | 'precipitation' | 'wind' | 'clouds' | 'pressure' | null): void {
-    this.setState((prev) => ({ ...prev, weatherLayer: layer }));
+    this._setState((prev) => ({ ...prev, weatherLayer: layer }));
   }
 
   /**
    * Update opacity
    */
   setOpacity(opacity: number): void {
-    this.setState((prev) => ({ ...prev, opacity }));
+    this._setState((prev) => ({ ...prev, opacity }));
   }
 
   /**
    * Toggle controls visibility
    */
   toggleControls(): void {
-    this.setState((prev) => ({ ...prev, showControls: !prev.showControls }));
+    this._setState((prev) => ({ ...prev, showControls: !prev.showControls }));
   }
 
   /**
    * Toggle legend visibility
    */
   toggleLegend(): void {
-    this.setState((prev) => ({ ...prev, showLegend: !prev.showLegend }));
+    this._setState((prev) => ({ ...prev, showLegend: !prev.showLegend }));
   }
 
   /**
    * Clear weather info
    */
   clearWeatherInfo(): void {
-    this.setState((prev) => ({
+    this._setState((prev) => ({
       ...prev,
       weatherInfo: null,
       selectedLocation: null,
@@ -178,11 +186,11 @@ export class MapViewModel {
    * Set mounted state
    */
   setMounted(mounted: boolean): void {
-    this.setState((prev) => ({ ...prev, mounted }));
+    this._setState((prev) => ({ ...prev, mounted }));
   }
 
   getState(): MapState {
-    return this.state;
+    return this._state;
   }
 }
 
@@ -211,8 +219,7 @@ export function useMapViewModel(initialLat?: number, initialLon?: number) {
     viewModelRef.current = new MapViewModel(state, setState);
   }
   // Update state reference in ViewModel
-  viewModelRef.current.state = state;
-  viewModelRef.current.setState = setState;
+  viewModelRef.current.updateStateRef(state, setState);
 
   const initializeLocation = useCallback(
     async (urlLat?: string | null, urlLon?: string | null) => {

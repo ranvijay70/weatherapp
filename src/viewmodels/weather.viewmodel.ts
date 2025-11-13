@@ -17,28 +17,36 @@ export interface WeatherState {
 }
 
 export class WeatherViewModel {
-  private state: WeatherState;
-  private setState: React.Dispatch<React.SetStateAction<WeatherState>>;
+  private _state: WeatherState;
+  private _setState: React.Dispatch<React.SetStateAction<WeatherState>>;
 
   constructor(
     state: WeatherState,
     setState: React.Dispatch<React.SetStateAction<WeatherState>>
   ) {
-    this.state = state;
-    this.setState = setState;
+    this._state = state;
+    this._setState = setState;
+  }
+
+  /**
+   * Update state reference (for hook usage)
+   */
+  updateStateRef(state: WeatherState, setState: React.Dispatch<React.SetStateAction<WeatherState>>): void {
+    this._state = state;
+    this._setState = setState;
   }
 
   /**
    * Fetch weather by city name
    */
   async fetchWeatherByCity(city: string): Promise<void> {
-    this.setState((prev) => ({ ...prev, loading: true, error: null }));
+    this._setState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
       const units = SettingsService.getSetting('temperatureUnit');
       const data = await WeatherService.getWeatherByCity(city, units);
 
-      this.setState({
+      this._setState({
         weather: data.weather,
         forecast: data.forecast,
         aqi: data.aqi,
@@ -46,7 +54,7 @@ export class WeatherViewModel {
         error: null,
       });
     } catch (error) {
-      this.setState({
+      this._setState({
         weather: null,
         forecast: null,
         aqi: null,
@@ -60,13 +68,13 @@ export class WeatherViewModel {
    * Fetch weather by coordinates
    */
   async fetchWeatherByCoordinates(lat: number, lon: number): Promise<void> {
-    this.setState((prev) => ({ ...prev, loading: true, error: null }));
+    this._setState((prev) => ({ ...prev, loading: true, error: null }));
 
     try {
       const units = SettingsService.getSetting('temperatureUnit');
       const data = await WeatherService.getWeatherByCoordinates(lat, lon, units);
 
-      this.setState({
+      this._setState({
         weather: data.weather,
         forecast: data.forecast,
         aqi: data.aqi,
@@ -74,7 +82,7 @@ export class WeatherViewModel {
         error: null,
       });
     } catch (error) {
-      this.setState({
+      this._setState({
         weather: null,
         forecast: null,
         aqi: null,
@@ -88,14 +96,14 @@ export class WeatherViewModel {
    * Clear error
    */
   clearError(): void {
-    this.setState((prev) => ({ ...prev, error: null }));
+    this._setState((prev) => ({ ...prev, error: null }));
   }
 
   /**
    * Clear all data
    */
   clearData(): void {
-    this.setState({
+    this._setState({
       weather: null,
       forecast: null,
       aqi: null,
@@ -105,7 +113,7 @@ export class WeatherViewModel {
   }
 
   getState(): WeatherState {
-    return this.state;
+    return this._state;
   }
 }
 
@@ -127,8 +135,7 @@ export function useWeatherViewModel() {
     viewModelRef.current = new WeatherViewModel(state, setState);
   }
   // Update state reference in ViewModel
-  viewModelRef.current.state = state;
-  viewModelRef.current.setState = setState;
+  viewModelRef.current.updateStateRef(state, setState);
 
   const fetchWeatherByCity = useCallback(
     async (city: string) => {

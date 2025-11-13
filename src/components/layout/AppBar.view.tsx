@@ -19,10 +19,10 @@ export default function AppBar() {
         <div className={`flex flex-wrap ${SPACING.gapXs}`}>
           <Link
             href="/"
-            className={`px-3 sm:px-4 py-2 sm:py-2.5 ${GLASSMORPHISM.roundedSmall} font-medium ${TYPOGRAPHY.bodySm} ${GLASSMORPHISM.transition} ${GLASSMORPHISM.blurLight} ${GLASSMORPHISM.borderLight} ${
+            className={`px-3 sm:px-4 py-2 sm:py-2.5 ${GLASSMORPHISM.roundedSmall} font-medium ${TYPOGRAPHY.bodySmall} ${GLASSMORPHISM.transition} ${GLASSMORPHISM.blurLight} ${GLASSMORPHISM.borderLight} ${
               isActive('/')
-                ? `${GLASSMORPHISM.bgActive} ${COLORS.textPrimary} ${GLASSMORPHISM.borderMedium} ${GLASSMORPHISM.shadowMd}`
-                : `${GLASSMORPHISM.bgLight} ${COLORS.textTertiary} ${GLASSMORPHISM.bgHover}`
+                ? `${GLASSMORPHISM.bgHeavy} ${COLORS.textPrimary} ${GLASSMORPHISM.borderActive} ${GLASSMORPHISM.shadowLight}`
+                : `${GLASSMORPHISM.bgLight} ${COLORS.textSecondary} ${GLASSMORPHISM.bgHover}`
             }`}
           >
             Home
