@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { getApiClient } from '@/lib/api-client';
+import { API_ENDPOINTS } from '@/src/config/api.constants';
 
 // Force Node.js runtime to ensure env vars are available
 export const runtime = 'nodejs';
@@ -60,8 +61,8 @@ export async function GET(req: Request) {
 
     // Make parallel requests for weather and forecast
     const [weatherData, forecastData] = await Promise.all([
-      apiClient.get('/weather', { params: weatherParams }),
-      apiClient.get('/forecast', { params: forecastParams }),
+      apiClient.get(API_ENDPOINTS.WEATHER, { params: weatherParams }),
+      apiClient.get(API_ENDPOINTS.FORECAST, { params: forecastParams }),
     ]);
 
     // Get coordinates for AQI (from weather data response)
@@ -72,7 +73,7 @@ export async function GET(req: Request) {
     let aqiData = null;
     if (aqiLat !== null && aqiLon !== null && !isNaN(aqiLat) && !isNaN(aqiLon)) {
       try {
-        aqiData = await apiClient.get('/air_pollution', {
+        aqiData = await apiClient.get(API_ENDPOINTS.AIR_POLLUTION, {
           params: { lat: aqiLat.toString(), lon: aqiLon.toString() },
         });
       } catch (aqiError) {

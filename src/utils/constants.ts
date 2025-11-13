@@ -1,13 +1,13 @@
 /**
  * Application Constants
+ * Note: API endpoints and URLs are now centralized in src/config/api.config.ts
  */
 
-export const API_ENDPOINTS = {
-  WEATHER: '/api/weather',
-  GEOCODE: '/api/geocode',
-} as const;
+import { CLIENT_API_ROUTES, IP_LOCATION_API } from '@/src/config/api.constants';
 
-export const IP_LOCATION_API = 'https://ipapi.co/json/';
+// Re-export for backward compatibility
+export const API_ENDPOINTS = CLIENT_API_ROUTES;
+export { IP_LOCATION_API };
 
 export const GEOLOCATION_OPTIONS = {
   enableHighAccuracy: false,
@@ -21,7 +21,6 @@ export const MAX_SUGGESTIONS = 5;
 
 export const STORAGE_KEYS = {
   TEMPERATURE_UNIT: 'temperatureUnit',
-  THEME: 'theme',
   AUTO_LOCATION: 'autoLocation',
   NOTIFICATIONS: 'notifications',
 } as const;

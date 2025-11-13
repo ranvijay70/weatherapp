@@ -3,7 +3,7 @@
  * Manages weather-related state and business logic
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { WeatherData, ForecastData, AQIData, TemperatureUnit } from '@/src/models/weather.model';
 import { WeatherService } from '@/src/services/weather.service';
 import { SettingsService } from '@/src/services/settings.service';
@@ -121,20 +121,36 @@ export function useWeatherViewModel() {
     error: null,
   });
 
-  const viewModel = new WeatherViewModel(state, setState);
+  // Use useRef to persist ViewModel instance across renders
+  const viewModelRef = useRef<WeatherViewModel | null>(null);
+  if (!viewModelRef.current) {
+    viewModelRef.current = new WeatherViewModel(state, setState);
+  }
+  // Update state reference in ViewModel
+  viewModelRef.current.state = state;
+  viewModelRef.current.setState = setState;
 
   const fetchWeatherByCity = useCallback(
-    (city: string) => viewModel.fetchWeatherByCity(city),
-    [viewModel]
+    async (city: string) => {
+      await viewModelRef.current!.fetchWeatherByCity(city);
+    },
+    []
   );
 
   const fetchWeatherByCoordinates = useCallback(
-    (lat: number, lon: number) => viewModel.fetchWeatherByCoordinates(lat, lon),
-    [viewModel]
+    async (lat: number, lon: number) => {
+      await viewModelRef.current!.fetchWeatherByCoordinates(lat, lon);
+    },
+    []
   );
 
-  const clearError = useCallback(() => viewModel.clearError(), [viewModel]);
-  const clearData = useCallback(() => viewModel.clearData(), [viewModel]);
+  const clearError = useCallback(() => {
+    viewModelRef.current!.clearError();
+  }, []);
+
+  const clearData = useCallback(() => {
+    viewModelRef.current!.clearData();
+  }, []);
 
   return {
     ...state,

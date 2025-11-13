@@ -18,7 +18,6 @@ export class SettingsService {
     try {
       const temperatureUnit = (localStorage.getItem(STORAGE_KEYS.TEMPERATURE_UNIT) ||
         DEFAULT_SETTINGS.temperatureUnit) as AppSettings['temperatureUnit'];
-      const theme = (localStorage.getItem(STORAGE_KEYS.THEME) || DEFAULT_SETTINGS.theme) as AppSettings['theme'];
       const autoLocation =
         localStorage.getItem(STORAGE_KEYS.AUTO_LOCATION) !== null
           ? localStorage.getItem(STORAGE_KEYS.AUTO_LOCATION) === 'true'
@@ -30,7 +29,6 @@ export class SettingsService {
 
       return {
         temperatureUnit,
-        theme,
         autoLocation,
         notifications,
       };
@@ -51,9 +49,6 @@ export class SettingsService {
     try {
       if (settings.temperatureUnit !== undefined) {
         localStorage.setItem(STORAGE_KEYS.TEMPERATURE_UNIT, settings.temperatureUnit);
-      }
-      if (settings.theme !== undefined) {
-        localStorage.setItem(STORAGE_KEYS.THEME, settings.theme);
       }
       if (settings.autoLocation !== undefined) {
         localStorage.setItem(STORAGE_KEYS.AUTO_LOCATION, settings.autoLocation.toString());

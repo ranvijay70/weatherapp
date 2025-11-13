@@ -4,7 +4,7 @@
  */
 
 export const GLASSMORPHISM = {
-  // Background styles
+  // Background styles - Original glassmorphism design (always uses white overlay on dark background)
   bg: 'bg-white/10',
   bgHover: 'hover:bg-white/15',
   bgActive: 'active:bg-white/20',
@@ -17,7 +17,7 @@ export const GLASSMORPHISM = {
   blurLight: 'backdrop-blur-sm',
   blurHeavy: 'backdrop-blur-lg',
   
-  // Borders
+  // Borders - Original glassmorphism design
   border: 'border border-white/20',
   borderLight: 'border border-white/10',
   borderMedium: 'border border-white/20',
@@ -75,12 +75,15 @@ export const LAYOUT = {
   sectionSpacing: 'mb-4 sm:mb-6 md:mb-8',
 } as const;
 
-// Colors
+// Colors - Original dark theme design (always dark)
 export const COLORS = {
+  // Text colors - Always white on dark background
   textPrimary: 'text-white',
   textSecondary: 'text-gray-200',
   textTertiary: 'text-gray-300',
   textError: 'text-red-400',
+  
+  // Background gradients - Original dark purple/black gradient
   bgGradient: 'bg-gradient-to-br from-purple-900 via-slate-900 to-black',
 } as const;
 

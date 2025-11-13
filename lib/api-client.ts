@@ -13,9 +13,9 @@ interface ApiClientConfig {
   retryConfig?: RetryConfig;
 }
 
-class ApiClient {
+export class ApiClient {
   private client: AxiosInstance;
-  private apiKey: string;
+  private apiKey: string;    
   private retryConfig: RetryConfig;
 
   constructor(config: ApiClientConfig) {
@@ -33,7 +33,7 @@ class ApiClient {
     };
 
     this.client = axios.create({
-      baseURL: config.baseURL,
+      baseURL: config.baseURL,  
       timeout: config.timeout || 10000, // 10 seconds default timeout
       params: {
         appid: this.apiKey, // Add API key to all requests by default
@@ -207,29 +207,51 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
 
 // Export singleton instance creator (for server-side usage)
 let apiClientInstance: ApiClient | null = null;
+let geocodeClientInstance: ApiClient | null = null;
 
 export function getApiClient(): ApiClient {
   if (!apiClientInstance) {
-    const baseURL = process.env.OPENWEATHER_BASE_URL;
-    const apiKey = process.env.OPENWEATHER_API_KEY;
-
-    if (!baseURL || !apiKey) {
-      throw new Error('OPENWEATHER_BASE_URL and OPENWEATHER_API_KEY must be set in environment variables');
+    // Only initialize on server-side (where env vars are available)
+    if (typeof window !== 'undefined') {
+      throw new Error('API client can only be used on the server-side');
     }
-
+    
+    // Use dynamic import to avoid issues with environment variables
+    const { OPENWEATHER_CONFIG } = require('@/src/config/api.config');
+    
     apiClientInstance = createApiClient({
-      baseURL,
-      apiKey,
-      timeout: 10000,
-      retryConfig: {
-        retries: 3,
-        retryDelay: 1000,
-      },
+      baseURL: OPENWEATHER_CONFIG.BASE_URL,
+      apiKey: OPENWEATHER_CONFIG.API_KEY,
+      timeout: OPENWEATHER_CONFIG.TIMEOUT,
+      retryConfig: OPENWEATHER_CONFIG.RETRY_CONFIG,
     });
   }
 
   return apiClientInstance;
 }
 
-export type { ApiClient, ApiClientConfig, RetryConfig };
+// Geocode API client (different base URL)
+export function getGeocodeClient(): ApiClient {
+  if (!geocodeClientInstance) {
+    // Only initialize on server-side (where env vars are available)
+    if (typeof window !== 'undefined') {
+      throw new Error('Geocode client can only be used on the server-side');
+    }
+    
+    // Use dynamic import to avoid issues with environment variables
+    const { OPENWEATHER_CONFIG } = require('@/src/config/api.config');
+    
+    geocodeClientInstance = createApiClient({
+      baseURL: OPENWEATHER_CONFIG.GEO_BASE_URL,
+      apiKey: OPENWEATHER_CONFIG.API_KEY,
+      timeout: OPENWEATHER_CONFIG.TIMEOUT,
+      retryConfig: OPENWEATHER_CONFIG.RETRY_CONFIG,
+    });
+  }
+
+  return geocodeClientInstance;
+}
+
+// Export types
+export type { ApiClientConfig, RetryConfig };
 

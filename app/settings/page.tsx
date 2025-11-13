@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useSettingsViewModel } from '@/src/viewmodels/settings.viewmodel';
 import { Card } from '@/src/components/ui/Card';
 import { Button } from '@/src/components/ui/Button';
-import AppBar from '@/components/AppBar';
+import AppBar from '@/src/components/layout/AppBar.view';
 import { COLORS, TYPOGRAPHY, LAYOUT, GLASSMORPHISM } from '@/src/utils/theme';
 
 export default function SettingsPage() {
@@ -84,74 +84,6 @@ export default function SettingsPage() {
                     />
                     <div className={`px-4 py-2.5 sm:px-5 sm:py-3 ${GLASSMORPHISM.roundedSmall} border-2 ${GLASSMORPHISM.transitionFast} peer-checked:border-blue-500 peer-checked:bg-blue-500/20 ${GLASSMORPHISM.borderMedium} ${GLASSMORPHISM.bgLight} ${GLASSMORPHISM.bgHover}`}>
                       <span className={`${COLORS.textPrimary} font-medium text-sm sm:text-base`}>Fahrenheit (°F)</span>
-                    </div>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Theme */}
-          <Card hover className="hover:bg-white/15 transition-all duration-300">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 mt-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 sm:h-7 sm:w-7 text-purple-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
-                  />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h2 className={`${TYPOGRAPHY.heading2} ${COLORS.textPrimary} mb-3 flex items-center gap-2`}>
-                  Theme
-                </h2>
-                <div className="flex flex-wrap gap-3 sm:gap-4">
-                  <label className="flex items-center cursor-pointer group">
-                    <input
-                      type="radio"
-                      name="theme"
-                      value="dark"
-                      checked={settings.theme === 'dark'}
-                      onChange={(e) => updateSetting('theme', e.target.value as 'dark' | 'light' | 'auto')}
-                      className="sr-only peer"
-                    />
-                    <div className={`px-4 py-2.5 sm:px-5 sm:py-3 ${GLASSMORPHISM.roundedSmall} border-2 ${GLASSMORPHISM.transitionFast} peer-checked:border-purple-500 peer-checked:bg-purple-500/20 ${GLASSMORPHISM.borderMedium} ${GLASSMORPHISM.bgLight} ${GLASSMORPHISM.bgHover}`}>
-                      <span className={`${COLORS.textPrimary} font-medium text-sm sm:text-base`}>🌙 Dark</span>
-                    </div>
-                  </label>
-                  <label className="flex items-center cursor-pointer group">
-                    <input
-                      type="radio"
-                      name="theme"
-                      value="light"
-                      checked={settings.theme === 'light'}
-                      onChange={(e) => updateSetting('theme', e.target.value as 'dark' | 'light' | 'auto')}
-                      className="sr-only peer"
-                    />
-                    <div className={`px-4 py-2.5 sm:px-5 sm:py-3 ${GLASSMORPHISM.roundedSmall} border-2 ${GLASSMORPHISM.transitionFast} peer-checked:border-purple-500 peer-checked:bg-purple-500/20 ${GLASSMORPHISM.borderMedium} ${GLASSMORPHISM.bgLight} ${GLASSMORPHISM.bgHover}`}>
-                      <span className={`${COLORS.textPrimary} font-medium text-sm sm:text-base`}>☀️ Light</span>
-                    </div>
-                  </label>
-                  <label className="flex items-center cursor-pointer group">
-                    <input
-                      type="radio"
-                      name="theme"
-                      value="auto"
-                      checked={settings.theme === 'auto'}
-                      onChange={(e) => updateSetting('theme', e.target.value as 'dark' | 'light' | 'auto')}
-                      className="sr-only peer"
-                    />
-                    <div className={`px-4 py-2.5 sm:px-5 sm:py-3 ${GLASSMORPHISM.roundedSmall} border-2 ${GLASSMORPHISM.transitionFast} peer-checked:border-purple-500 peer-checked:bg-purple-500/20 ${GLASSMORPHISM.borderMedium} ${GLASSMORPHISM.bgLight} ${GLASSMORPHISM.bgHover}`}>
-                      <span className={`${COLORS.textPrimary} font-medium text-sm sm:text-base`}>🔄 Auto</span>
                     </div>
                   </label>
                 </div>

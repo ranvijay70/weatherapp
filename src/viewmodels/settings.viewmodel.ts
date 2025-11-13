@@ -21,7 +21,7 @@ export function useSettingsViewModel() {
   // Listen for storage changes
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key && ['temperatureUnit', 'theme', 'autoLocation', 'notifications'].includes(e.key)) {
+      if (e.key && ['temperatureUnit', 'autoLocation', 'notifications'].includes(e.key)) {
         const updatedSettings = SettingsService.loadSettings();
         setSettings(updatedSettings);
       }

@@ -11,12 +11,11 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState, useCallback, Suspense } from 'react';
 import dynamicImport from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
-import AppBar from '@/components/AppBar';
+import AppBar from '@/src/components/layout/AppBar.view';
 import { COLORS, GLASSMORPHISM, TYPOGRAPHY, SPACING } from '@/src/utils/theme';
-import { LocationService } from '@/src/services/location.service';
 import { MapSearch } from '@/src/components/map/MapSearch';
 import { MapEventHandler } from '@/src/components/map/MapEventHandler';
-import { WeatherService } from '@/src/services/weather.service';
+import { useMapViewModel } from '@/src/viewmodels/map.viewmodel';
 
 // Dynamically import Leaflet components to avoid SSR issues
 const MapContainer = dynamicImport(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false });
@@ -33,19 +32,33 @@ type BaseMapType = 'standard' | 'satellite' | 'terrain';
 type WeatherLayerType = 'temperature' | 'precipitation' | 'wind' | 'clouds' | 'pressure' | null;
 
 function WeatherMapContent() {
-  const [mounted, setMounted] = useState(false);
-  const [baseMap, setBaseMap] = useState<BaseMapType>('satellite');
-  const [weatherLayer, setWeatherLayer] = useState<WeatherLayerType>(null);
-  const [opacity, setOpacity] = useState(0.7);
-  const [lat, setLat] = useState(25.5941); // Default to Patna, India
-  const [lon, setLon] = useState(85.1376);
-  const [zoom, setZoom] = useState(10);
-  const [showControls, setShowControls] = useState(true);
-  const [showLegend, setShowLegend] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<{ name: string; lat: number; lon: number } | null>(null);
-  const [weatherInfo, setWeatherInfo] = useState<any>(null);
-  const [loadingWeather, setLoadingWeather] = useState(false);
   const searchParams = useSearchParams();
+  const {
+    mounted,
+    lat,
+    lon,
+    zoom,
+    baseMap,
+    weatherLayer,
+    opacity,
+    showControls,
+    showLegend,
+    selectedLocation,
+    weatherInfo,
+    loadingWeather,
+    initializeLocation,
+    handleLocationSelect,
+    handleMapClick,
+    setZoom: updateZoom,
+    setCenter,
+    setBaseMap: updateBaseMap,
+    setWeatherLayer: updateWeatherLayer,
+    setOpacity: updateOpacity,
+    toggleControls,
+    toggleLegend,
+    clearWeatherInfo,
+    setMounted,
+  } = useMapViewModel();
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -72,26 +85,11 @@ function WeatherMapContent() {
     link.crossOrigin = '';
     document.head.appendChild(link);
     
-    // Get coordinates from URL params if available
+    // Initialize location using ViewModel
     const urlLat = searchParams.get('lat');
     const urlLon = searchParams.get('lon');
-    if (urlLat && urlLon) {
-      setLat(parseFloat(urlLat));
-      setLon(parseFloat(urlLon));
-    } else {
-      // Try to get user's current location
-      LocationService.getLocationWithFallback()
-        .then((coords) => {
-          if (coords) {
-            setLat(coords.lat);
-            setLon(coords.lon);
-          }
-        })
-        .catch(() => {
-          // Use default location
-        });
-    }
-  }, [searchParams]);
+    initializeLocation(urlLat, urlLon);
+  }, [searchParams, initializeLocation, setMounted]);
 
   const getBaseMapUrl = (type: BaseMapType) => {
     switch (type) {
@@ -108,7 +106,7 @@ function WeatherMapContent() {
     if (!layer) return null;
     // Note: OpenWeatherMap map tiles require a paid subscription
     // For demo purposes, we'll use a placeholder approach
-    // In production, you would use: `https://tile.openweathermap.org/map/${layer}/{z}/{x}/{y}.png?appid=${API_KEY}`
+    // In production, you would use the centralized API client from lib/api-client.ts
     // Alternative: You can use free weather map services like:
     // - Windy.com API
     // - Meteomatics
@@ -150,49 +148,19 @@ function WeatherMapContent() {
     }
   };
 
-  const handleLocationSelect = useCallback(async (lat: number, lon: number, name: string) => {
-    setSelectedLocation({ name, lat, lon });
-    setLat(lat);
-    setLon(lon);
-    setZoom(12);
+  const handleZoomChange = useCallback(
+    (newZoom: number) => {
+      updateZoom(newZoom);
+    },
+    [updateZoom]
+  );
 
-    // Fetch weather for selected location
-    setLoadingWeather(true);
-    try {
-      const data = await WeatherService.getWeatherByCoordinates(lat, lon);
-      setWeatherInfo(data.weather);
-    } catch (error) {
-      console.error('Failed to fetch weather:', error);
-    } finally {
-      setLoadingWeather(false);
-    }
-  }, []);
-
-  const handleMapClick = useCallback(async (lat: number, lon: number) => {
-    setSelectedLocation({ name: 'Selected Location', lat, lon });
-    setLat(lat);
-    setLon(lon);
-
-    // Fetch weather for clicked location
-    setLoadingWeather(true);
-    try {
-      const data = await WeatherService.getWeatherByCoordinates(lat, lon);
-      setWeatherInfo(data.weather);
-    } catch (error) {
-      console.error('Failed to fetch weather:', error);
-    } finally {
-      setLoadingWeather(false);
-    }
-  }, []);
-
-  const handleZoomChange = useCallback((newZoom: number) => {
-    setZoom(newZoom);
-  }, []);
-
-  const handleMoveEnd = useCallback((newLat: number, newLon: number) => {
-    setLat(newLat);
-    setLon(newLon);
-  }, []);
+  const handleMoveEnd = useCallback(
+    (newLat: number, newLon: number) => {
+      setCenter(newLat, newLon);
+    },
+    [setCenter]
+  );
 
   if (!mounted) {
     return (
@@ -229,7 +197,7 @@ function WeatherMapContent() {
                 {(['standard', 'satellite', 'terrain'] as BaseMapType[]).map((type) => (
                   <button
                     key={type}
-                    onClick={() => setBaseMap(type)}
+                    onClick={() => updateBaseMap(type)}
                     className={`px-3 py-2 ${GLASSMORPHISM.roundedSmall} text-sm font-medium ${GLASSMORPHISM.transitionFast} capitalize ${
                       baseMap === type
                         ? 'bg-blue-500 text-white shadow-lg'
@@ -247,7 +215,7 @@ function WeatherMapContent() {
               <p className={`text-xs ${COLORS.textTertiary} mb-2`}>Weather Layers</p>
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => setWeatherLayer(null)}
+                  onClick={() => updateWeatherLayer(null)}
                   className={`px-3 py-2 ${GLASSMORPHISM.roundedSmall} text-sm font-medium ${GLASSMORPHISM.transitionFast} ${
                     weatherLayer === null
                       ? 'bg-gray-600 text-white shadow-lg'
@@ -256,10 +224,10 @@ function WeatherMapContent() {
                 >
                   None
                 </button>
-                {(['temperature', 'precipitation', 'wind', 'clouds', 'pressure'] as WeatherLayerType[]).map((layer) => (
-                  <button
-                    key={layer}
-                    onClick={() => setWeatherLayer(layer)}
+                    {(['temperature', 'precipitation', 'wind', 'clouds', 'pressure'] as WeatherLayerType[]).map((layer) => (
+                      <button
+                        key={layer}
+                        onClick={() => updateWeatherLayer(layer)}
                     className={`px-3 py-2 ${GLASSMORPHISM.roundedSmall} text-sm font-medium ${GLASSMORPHISM.transitionFast} capitalize ${
                       weatherLayer === layer
                         ? `bg-gradient-to-r ${getLayerColor(layer)} text-white shadow-lg`
@@ -285,7 +253,7 @@ function WeatherMapContent() {
                     max="1"
                     step="0.1"
                     value={opacity}
-                    onChange={(e) => setOpacity(parseFloat(e.target.value))}
+                    onChange={(e) => updateOpacity(parseFloat(e.target.value))}
                     className="flex-1 h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
                   />
                 </div>
@@ -299,7 +267,7 @@ function WeatherMapContent() {
               <div className="flex items-center justify-between mb-2">
                 <h3 className={`text-sm font-semibold ${COLORS.textPrimary}`}>Legend</h3>
                 <button
-                  onClick={() => setShowLegend(false)}
+                  onClick={toggleLegend}
                   className={`text-xs ${COLORS.textTertiary} ${GLASSMORPHISM.bgHover} px-2 py-1 ${GLASSMORPHISM.roundedSmall}`}
                 >
                   ✕
@@ -342,9 +310,9 @@ function WeatherMapContent() {
         </div>
       )}
 
-      {/* Toggle Controls Button */}
-      <button
-        onClick={() => setShowControls(!showControls)}
+              {/* Toggle Controls Button */}
+              <button
+                onClick={toggleControls}
         className={`absolute top-4 right-4 z-[1001] ${GLASSMORPHISM.bg} ${GLASSMORPHISM.blur} ${GLASSMORPHISM.rounded} ${GLASSMORPHISM.border} ${GLASSMORPHISM.shadow} p-2 ${COLORS.textPrimary} ${GLASSMORPHISM.transitionFast} ${GLASSMORPHISM.bgHover}`}
         aria-label="Toggle controls"
       >
@@ -354,7 +322,7 @@ function WeatherMapContent() {
       {/* Legend Toggle */}
       {weatherLayer && (
         <button
-          onClick={() => setShowLegend(!showLegend)}
+          onClick={toggleLegend}
           className={`absolute bottom-20 right-4 z-[1001] ${GLASSMORPHISM.bg} ${GLASSMORPHISM.blur} ${GLASSMORPHISM.rounded} ${GLASSMORPHISM.border} ${GLASSMORPHISM.shadow} p-2 ${COLORS.textPrimary} ${GLASSMORPHISM.transitionFast} ${GLASSMORPHISM.bgHover}`}
           aria-label="Toggle legend"
         >
@@ -369,11 +337,8 @@ function WeatherMapContent() {
             <h3 className={`text-sm font-semibold ${COLORS.textPrimary}`}>
               {selectedLocation?.name || 'Weather Info'}
             </h3>
-            <button
-              onClick={() => {
-                setWeatherInfo(null);
-                setSelectedLocation(null);
-              }}
+                <button
+                  onClick={clearWeatherInfo}
               className={`text-xs ${COLORS.textTertiary} ${GLASSMORPHISM.bgHover} px-2 py-1 ${GLASSMORPHISM.roundedSmall}`}
             >
               ✕

@@ -4,7 +4,7 @@
  */
 
 import { WeatherResponse, LocationInput, TemperatureUnit } from '@/src/models/weather.model';
-import { API_ENDPOINTS } from '@/src/utils/constants';
+import { CLIENT_API_ROUTES } from '@/src/config/api.constants';
 
 export class WeatherService {
   /**
@@ -12,7 +12,7 @@ export class WeatherService {
    */
   static async getWeatherByCity(city: string, units: TemperatureUnit = 'metric'): Promise<WeatherResponse> {
     try {
-      const res = await fetch(`${API_ENDPOINTS.WEATHER}?city=${encodeURIComponent(city)}&units=${units}`);
+      const res = await fetch(`${CLIENT_API_ROUTES.WEATHER}?city=${encodeURIComponent(city)}&units=${units}`);
       const data = await res.json();
 
       if (!res.ok) {
@@ -34,7 +34,7 @@ export class WeatherService {
     units: TemperatureUnit = 'metric'
   ): Promise<WeatherResponse> {
     try {
-      const res = await fetch(`${API_ENDPOINTS.WEATHER}?lat=${lat}&lon=${lon}&units=${units}`);
+      const res = await fetch(`${CLIENT_API_ROUTES.WEATHER}?lat=${lat}&lon=${lon}&units=${units}`);
       const data = await res.json();
 
       if (!res.ok) {

@@ -1,10 +1,10 @@
 'use client';
 
 import { WeatherData, ForecastData, AQIData } from '@/src/models/weather.model';
-import HourlyForecast from '@/components/weather/hourly-forecast';
-import HourlyForecastGraph from '@/components/weather/hourly-forecast-graph';
-import DailyForecast from '@/components/weather/daily-forecast';
-import AQIDisplay from '@/components/weather/aqi-display';
+import HourlyForecast from './hourly-forecast';
+import HourlyForecastGraph from './hourly-forecast-graph';
+import DailyForecast from './daily-forecast';
+import AQIDisplay from './aqi-display';
 import { getWeatherIconUrl, getWeatherAnimation } from '@/lib/weather-icons';
 import { GLASSMORPHISM, SPACING, TYPOGRAPHY, COLORS } from '@/src/utils/theme';
 

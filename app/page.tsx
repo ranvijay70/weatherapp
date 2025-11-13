@@ -8,10 +8,10 @@ import { useCallback } from 'react';
 import { useWeatherViewModel } from '@/src/viewmodels/weather.viewmodel';
 import { useAutoLocation } from '@/src/hooks/use-auto-location.hook';
 import { SearchBarView } from '@/src/components/weather/SearchBar.view';
-import WeatherDisplay from '@/components/WeatherDisplay';
-import LoadingSpinner from '@/components/LoadingSpinner';
-import NoDataFound from '@/components/ui/no-data-found';
-import AppBar from '@/components/AppBar';
+import WeatherDisplay from '@/src/components/weather/WeatherDisplay.view';
+import LoadingSpinner from '@/src/components/ui/LoadingSpinner.view';
+import NoDataFound from '@/src/components/ui/no-data-found';
+import AppBar from '@/src/components/layout/AppBar.view';
 import { COLORS, TYPOGRAPHY, LAYOUT, GLASSMORPHISM } from '@/src/utils/theme';
 
 export default function Home() {
@@ -57,8 +57,8 @@ export default function Home() {
         <div className={`mb-6 sm:mb-8`}>
           <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 sm:gap-6 mb-4 sm:mb-6">
             <h1 className={`${TYPOGRAPHY.heading1} ${COLORS.textPrimary} drop-shadow-lg text-center sm:text-left`}>
-              Weather Forecast
-            </h1>
+          Weather Forecast
+        </h1>
             <div className="w-full sm:w-auto">
               <AppBar />
             </div>
@@ -66,7 +66,7 @@ export default function Home() {
         </div>
         
         <SearchBarView
-          onSearch={handleSearch}
+          onSearch={handleSearch} 
           onLocationSearch={handleLocationSearch}
           isLoading={loading}
         />
@@ -74,7 +74,7 @@ export default function Home() {
         {error ? (
           <div className={`text-center ${COLORS.textError} ${LAYOUT.sectionSpacing} flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 px-2`}>
             <span className={TYPOGRAPHY.bodySmall}>{error}</span>
-            <button
+            <button 
               onClick={clearError}
               className={`px-4 py-2 sm:py-2.5 ${GLASSMORPHISM.bgLight} ${GLASSMORPHISM.bgHover} ${GLASSMORPHISM.bgActive} ${GLASSMORPHISM.roundedFull} ${TYPOGRAPHY.bodySmall} ${GLASSMORPHISM.transitionFast} focus:outline-none focus:ring-2 focus:ring-white/50 min-h-[40px] touch-manipulation`}
             >

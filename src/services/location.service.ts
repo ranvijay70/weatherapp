@@ -5,6 +5,7 @@
 
 import { Coordinates, LocationSuggestion, IPLocationData } from '@/src/models/location.model';
 import { API_ENDPOINTS, IP_LOCATION_API, GEOLOCATION_OPTIONS } from '@/src/utils/constants';
+import { CLIENT_API_ROUTES } from '@/src/config/api.constants';
 
 export class LocationService {
   /**
@@ -63,7 +64,7 @@ export class LocationService {
    */
   static async searchLocations(query: string, limit: number = 5): Promise<LocationSuggestion[]> {
     try {
-      const response = await fetch(`${API_ENDPOINTS.GEOCODE}?q=${encodeURIComponent(query)}&limit=${limit}`);
+      const response = await fetch(`${CLIENT_API_ROUTES.GEOCODE}?q=${encodeURIComponent(query)}&limit=${limit}`);
       if (!response.ok) {
         throw new Error('Failed to fetch location suggestions');
       }
