@@ -5,33 +5,29 @@
 
 'use client';
 
+// Force dynamic rendering to prevent SSR issues
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import AppBar from '@/components/AppBar';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { COLORS, GLASSMORPHISM, TYPOGRAPHY, SPACING } from '@/src/utils/theme';
 import { LocationService } from '@/src/services/location.service';
 import { MapSearch } from '@/src/components/map/MapSearch';
 import { MapEventHandler } from '@/src/components/map/MapEventHandler';
 import { WeatherService } from '@/src/services/weather.service';
 
-// Fix for default marker icon in Leaflet with Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
-
-// Dynamically import Leaflet to avoid SSR issues
+// Dynamically import Leaflet components to avoid SSR issues
 const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false });
+
 const TileLayer = dynamic(() => import('react-leaflet').then((mod) => mod.TileLayer), { ssr: false });
 const Marker = dynamic(() => import('react-leaflet').then((mod) => mod.Marker), { ssr: false });
 const Popup = dynamic(() => import('react-leaflet').then((mod) => mod.Popup), { ssr: false });
 const LayersControl = dynamic(() => import('react-leaflet').then((mod) => mod.LayersControl), { ssr: false });
 const ZoomControl = dynamic(() => import('react-leaflet').then((mod) => mod.ZoomControl), { ssr: false });
+
+// Leaflet CSS will be loaded dynamically in useEffect
 
 type BaseMapType = 'standard' | 'satellite' | 'terrain';
 type WeatherLayerType = 'temperature' | 'precipitation' | 'wind' | 'clouds' | 'pressure' | null;
@@ -52,7 +48,22 @@ export default function WeatherMapPage() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    setMounted(true);
+    if (typeof window === 'undefined') return;
+    
+    // Load Leaflet CSS and fix icon issue dynamically
+    Promise.all([
+      import('leaflet/dist/leaflet.css'),
+      import('leaflet').then((L) => {
+        delete (L.default.Icon.Default.prototype as any)._getIconUrl;
+        L.default.Icon.Default.mergeOptions({
+          iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        });
+      }),
+    ]).then(() => {
+      setMounted(true);
+    });
     
     // Get coordinates from URL params if available
     const urlLat = searchParams.get('lat');
