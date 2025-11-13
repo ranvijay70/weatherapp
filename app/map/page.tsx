@@ -507,3 +507,15 @@ function WeatherMapContent() {
     </div>
   );
 }
+
+export default function WeatherMapPage() {
+  return (
+    <Suspense fallback={
+      <div className={`min-h-screen ${COLORS.bgGradient} flex items-center justify-center`}>
+        <div className={`${COLORS.textPrimary} text-xl`}>Loading map...</div>
+      </div>
+    }>
+      <WeatherMapContent />
+    </Suspense>
+  );
+}
