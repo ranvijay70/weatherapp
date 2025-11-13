@@ -1,29 +1,45 @@
+/**
+ * SearchBar View Component
+ * Reusable and responsive search bar with location suggestions
+ */
+
 'use client';
 
 import { useState, useEffect, useRef, FormEvent } from 'react';
+import { LocationSuggestion } from '@/src/models/location.model';
+import { LocationService } from '@/src/services/location.service';
+import { SEARCH_DEBOUNCE_MS, MIN_SEARCH_LENGTH, MAX_SUGGESTIONS } from '@/src/utils/constants';
+import { Input } from '@/src/components/ui/Input';
+import { Button } from '@/src/components/ui/Button';
+import { GLASSMORPHISM, SPACING, COLORS } from '@/src/utils/theme';
 
-interface SearchBarProps {
+export interface SearchBarViewProps {
   onSearch: (city: string) => void;
   onLocationSearch: (lat: number, lon: number) => void;
+  isLoading?: boolean;
 }
 
-export default function SearchBar({ onSearch, onLocationSearch }: SearchBarProps) {
+export const SearchBarView: React.FC<SearchBarViewProps> = ({
+  onSearch,
+  onLocationSearch,
+  isLoading = false,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [suggestions, setSuggestions] = useState<Array<{ name: string; state?: string; country?: string; lat: number; lon: number }>>([]);
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [loadingSuggest, setLoadingSuggest] = useState(false);
   const [open, setOpen] = useState(false);
-  const cacheRef = useRef<Map<string, any[]>>(new Map());
+  const cacheRef = useRef<Map<string, LocationSuggestion[]>>(new Map());
   const suppressOpenRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Debounced suggestion fetch (geocoding). Does NOT call weather API.
+  // Debounced suggestion fetch
   useEffect(() => {
     const q = searchTerm.trim();
     if (suppressOpenRef.current) {
       suppressOpenRef.current = false;
-      return; // prevent reopening immediately after a programmatic selection
+      return;
     }
-    if (q.length < 2) {
+    if (q.length < MIN_SEARCH_LENGTH) {
       setSuggestions([]);
       setOpen(false);
       return;
@@ -31,7 +47,7 @@ export default function SearchBar({ onSearch, onLocationSearch }: SearchBarProps
 
     const cached = cacheRef.current.get(q.toLowerCase());
     if (cached) {
-      setSuggestions(cached as any[]);
+      setSuggestions(cached);
       setOpen(true);
       return;
     }
@@ -39,9 +55,7 @@ export default function SearchBar({ onSearch, onLocationSearch }: SearchBarProps
     setLoadingSuggest(true);
     const id = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}&limit=5`);
-        const data = await res.json();
-        const list = Array.isArray(data?.suggestions) ? data.suggestions : [];
+        const list = await LocationService.searchLocations(q, MAX_SUGGESTIONS);
         cacheRef.current.set(q.toLowerCase(), list);
         setSuggestions(list);
         setOpen(true);
@@ -51,7 +65,8 @@ export default function SearchBar({ onSearch, onLocationSearch }: SearchBarProps
       } finally {
         setLoadingSuggest(false);
       }
-    }, 500);
+    }, SEARCH_DEBOUNCE_MS);
+    
     return () => clearTimeout(id);
   }, [searchTerm]);
 
@@ -65,27 +80,21 @@ export default function SearchBar({ onSearch, onLocationSearch }: SearchBarProps
   };
 
   const handleLocationClick = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          onLocationSearch(position.coords.latitude, position.coords.longitude);
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          alert('Unable to retrieve your location. Please enable location services.');
-        }
-      );
-    } else {
-      alert('Geolocation is not supported by your browser.');
-    }
+    LocationService.getCurrentLocation()
+      .then((coords) => {
+        onLocationSearch(coords.lat, coords.lon);
+      })
+      .catch((error) => {
+        console.error('Error getting location:', error);
+        alert('Unable to retrieve your location. Please enable location services.');
+      });
   };
 
-  const handleSelectSuggestion = (s: { name: string; lat: number; lon: number }) => {
+  const handleSelectSuggestion = (s: LocationSuggestion) => {
     suppressOpenRef.current = true;
     setSearchTerm(s.name);
     setSuggestions([]);
     setOpen(false);
-    // Use coordinates for best accuracy
     onLocationSearch(s.lat, s.lon);
     inputRef.current?.blur();
   };
@@ -94,18 +103,18 @@ export default function SearchBar({ onSearch, onLocationSearch }: SearchBarProps
     <div className="mb-6 sm:mb-8 w-full">
       <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <div className="flex-1 relative">
-          <input
-            type="search"
+          <Input
             ref={inputRef}
+            type="search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search for a city..."
-            className="w-full min-w-0 px-4 py-3 sm:py-3.5 text-base sm:text-lg rounded-xl bg-white/15 backdrop-blur-sm border border-white/30 text-white placeholder-gray-200 focus:outline-none focus:ring-2 focus:ring-white/60 focus:border-transparent transition-all shadow-lg"
             inputMode="search"
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="none"
             aria-label="Search for a city"
+            disabled={isLoading}
             onFocus={() => {
               if (suggestions.length > 0) setOpen(true);
             }}
@@ -114,50 +123,49 @@ export default function SearchBar({ onSearch, onLocationSearch }: SearchBarProps
             }}
           />
           {open && (suggestions.length > 0 || loadingSuggest) && (
-            <div className="absolute z-20 mt-2 w-full rounded-lg border border-white/20 bg-slate-900/90 backdrop-blur-md text-white shadow-xl max-h-72 overflow-auto">
+            <div className={`absolute z-20 mt-2 w-full ${GLASSMORPHISM.roundedSmall} ${GLASSMORPHISM.borderMedium} bg-slate-900/90 ${GLASSMORPHISM.blur} ${COLORS.textPrimary} ${GLASSMORPHISM.shadow} max-h-72 overflow-auto`}>
               {loadingSuggest && (
-                <div className="px-4 py-3 text-sm text-gray-300">Searching…</div>
+                <div className={`px-4 py-3 text-sm ${COLORS.textTertiary}`}>Searching…</div>
               )}
               {!loadingSuggest && suggestions.map((s, i) => (
                 <button
                   key={`${s.name}-${s.lat}-${s.lon}-${i}`}
                   type="button"
                   onMouseDown={(e) => {
-                    // handle on mousedown to avoid input blur race
                     e.preventDefault();
                     handleSelectSuggestion(s);
                   }}
-                  className="w-full text-left px-4 py-3 hover:bg-white/10 focus:bg-white/10 transition-colors"
+                  className={`w-full text-left px-4 py-3 ${GLASSMORPHISM.bgHover} focus:bg-white/10 ${GLASSMORPHISM.transitionFast}`}
                 >
                   <span className="font-medium">{s.name}</span>
-                  <span className="text-gray-300">{s.state ? `, ${s.state}` : ''}{s.country ? `, ${s.country}` : ''}</span>
+                  <span className={COLORS.textTertiary}>
+                    {s.state ? `, ${s.state}` : ''}{s.country ? `, ${s.country}` : ''}
+                  </span>
                 </button>
               ))}
               {!loadingSuggest && suggestions.length === 0 && (
-                <div className="px-4 py-3 text-sm text-gray-300">No results</div>
+                <div className={`px-4 py-3 text-sm ${COLORS.textTertiary}`}>No results</div>
               )}
             </div>
           )}
         </div>
         <div className="flex gap-3 sm:gap-4">
-          <button
-            type="submit"
-            className="flex-1 sm:flex-none px-6 py-3 sm:py-3.5 bg-white/20 hover:bg-white/30 active:bg-white/40 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium text-base sm:text-lg transition-all focus:outline-none focus:ring-2 focus:ring-white/50 whitespace-nowrap min-h-[48px] touch-manipulation shadow-lg"
-          >
+          <Button type="submit" disabled={isLoading} className="flex-1 sm:flex-none">
             Search
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={handleLocationClick}
-            className="flex-1 sm:flex-none px-4 sm:px-6 py-3 sm:py-3.5 bg-white/20 hover:bg-white/30 active:bg-white/40 backdrop-blur-sm border border-white/20 rounded-xl text-white font-medium text-base sm:text-lg transition-all focus:outline-none focus:ring-2 focus:ring-white/50 whitespace-nowrap min-h-[48px] touch-manipulation shadow-lg"
+            disabled={isLoading}
+            className="flex-1 sm:flex-none"
             aria-label="Use current location"
           >
             <span className="sm:hidden text-xl">📍</span>
             <span className="hidden sm:inline">📍 Use Location</span>
-          </button>
+          </Button>
         </div>
       </form>
     </div>
   );
-}
+};
 

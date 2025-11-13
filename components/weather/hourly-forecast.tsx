@@ -1,7 +1,8 @@
 'use client';
 
-import { ForecastData } from '@/services/weatherService';
+import { ForecastData } from '@/src/models/weather.model';
 import { getWeatherIconUrl } from '@/lib/weather-icons';
+import { GLASSMORPHISM, SPACING, TYPOGRAPHY, COLORS } from '@/src/utils/theme';
 
 interface HourlyForecastProps {
   forecast: ForecastData;
@@ -21,10 +22,10 @@ export default function HourlyForecast({ forecast }: HourlyForecastProps) {
   }
 
   return (
-    <div className="bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-white/20 shadow-xl">
-      <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-3 sm:mb-4 md:mb-6">24-Hour Forecast</h3>
+    <div className={`${GLASSMORPHISM.bg} ${GLASSMORPHISM.blur} ${GLASSMORPHISM.rounded} ${GLASSMORPHISM.border} ${GLASSMORPHISM.shadow} ${SPACING.md}`}>
+      <h3 className={`${TYPOGRAPHY.heading3} ${COLORS.textPrimary} mb-3 sm:mb-4 md:mb-6`}>24-Hour Forecast</h3>
       <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
-        <div className="flex gap-2 sm:gap-3 md:gap-4 min-w-max pb-2 sm:pb-3">
+        <div className={`flex ${SPACING.gapSm} min-w-max pb-2 sm:pb-3`}>
           {hourlyData.map((item, index) => {
             const icon = item.weather[0]?.icon;
             const temp = Math.round(item.main.temp);
@@ -34,9 +35,9 @@ export default function HourlyForecast({ forecast }: HourlyForecastProps) {
             return (
               <div
                 key={index}
-                className="flex flex-col items-center bg-white/5 rounded-lg sm:rounded-xl p-2.5 sm:p-3 md:p-4 min-w-[70px] sm:min-w-[90px] md:min-w-[100px] backdrop-blur-sm border border-white/10 flex-shrink-0 transition-transform duration-200 hover:scale-105"
+                className={`flex flex-col items-center ${GLASSMORPHISM.bgLight} ${GLASSMORPHISM.roundedSmall} p-2.5 sm:p-3 md:p-4 min-w-[70px] sm:min-w-[90px] md:min-w-[100px] ${GLASSMORPHISM.blurLight} ${GLASSMORPHISM.borderLight} flex-shrink-0 ${GLASSMORPHISM.transitionFast} hover:scale-105`}
               >
-                <p className="text-xs sm:text-sm text-gray-300 mb-1.5 sm:mb-2 whitespace-nowrap">{time}</p>
+                <p className={`text-xs sm:text-sm ${COLORS.textTertiary} mb-1.5 sm:mb-2 whitespace-nowrap`}>{time}</p>
                 {icon && (
                   <img
                     src={iconUrl}
@@ -45,7 +46,7 @@ export default function HourlyForecast({ forecast }: HourlyForecastProps) {
                     loading="lazy"
                   />
                 )}
-                <p className="text-sm sm:text-base md:text-lg font-semibold text-white">{temp}°</p>
+                <p className={`text-sm sm:text-base md:text-lg font-semibold ${COLORS.textPrimary}`}>{temp}°</p>
               </div>
             );
           })}

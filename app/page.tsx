@@ -1,91 +1,88 @@
+/**
+ * Home Page - Refactored with MVVM pattern and Glassmorphism
+ */
+
 'use client';
 
-import { useState } from 'react';
-import SearchBar from '@/components/SearchBar';
+import { useCallback } from 'react';
+import { useWeatherViewModel } from '@/src/viewmodels/weather.viewmodel';
+import { useAutoLocation } from '@/src/hooks/use-auto-location.hook';
+import { SearchBarView } from '@/src/components/weather/SearchBar.view';
 import WeatherDisplay from '@/components/WeatherDisplay';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import NoDataFound from '@/components/ui/no-data-found';
-import { ForecastData, WeatherData, AQIData } from '@/services/weatherService';
+import AppBar from '@/components/AppBar';
+import { COLORS, TYPOGRAPHY, LAYOUT, GLASSMORPHISM } from '@/src/utils/theme';
 
 export default function Home() {
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  const [forecastData, setForecastData] = useState<ForecastData | null>(null);
-  const [aqiData, setAqiData] = useState<AQIData | null>(null);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const {
+    weather: weatherData,
+    forecast: forecastData,
+    aqi: aqiData,
+    loading,
+    error,
+    fetchWeatherByCity,
+    fetchWeatherByCoordinates,
+    clearError,
+  } = useWeatherViewModel();
 
-  const handleSearch = async (city: string) => {
-    try {
-      setLoading(true);
-      setError('');
+  const handleLocationSearch = useCallback(
+    (lat: number, lon: number) => {
+      fetchWeatherByCoordinates(lat, lon);
+    },
+    [fetchWeatherByCoordinates]
+  );
 
-      const res = await fetch(`/api/weather?city=${encodeURIComponent(city)}`);
-      const data = await res.json();
+  const handleSearch = useCallback(
+    (city: string) => {
+      fetchWeatherByCity(city);
+    },
+    [fetchWeatherByCity]
+  );
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to fetch weather data');
-      }
+  // Auto-load location on mount
+  const handleAutoLocation = useCallback(
+    (coords: { lat: number; lon: number }) => {
+      handleLocationSearch(coords.lat, coords.lon);
+    },
+    [handleLocationSearch]
+  );
 
-      setWeatherData(data.weather);
-      setForecastData(data.forecast);
-      setAqiData(data.aqi || null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch weather data');
-      setWeatherData(null);
-      setForecastData(null);
-      setAqiData(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLocationSearch = async (lat: number, lon: number) => {
-    try {
-      setLoading(true);
-      setError('');
-
-      const res = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to fetch weather data');
-      }
-
-      setWeatherData(data.weather);
-      setForecastData(data.forecast);
-      setAqiData(data.aqi || null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch weather data');
-      setWeatherData(null);
-      setForecastData(null);
-      setAqiData(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useAutoLocation(handleAutoLocation);
 
   return (
-    <main className="min-h-screen p-3 sm:p-4 md:p-6 lg:p-8 bg-gradient-to-br from-purple-900 via-slate-900 to-black">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-center mb-4 sm:mb-6 md:mb-8 text-white">
-          Weather Forecast
-        </h1>
-        <SearchBar 
-          onSearch={handleSearch} 
+    <main className={`min-h-screen ${LAYOUT.containerPadding} ${COLORS.bgGradient}`}>
+      <div className={`${LAYOUT.containerMaxWidth} mx-auto`}>
+        {/* Header with AppBar on the right */}
+        <div className={`mb-6 sm:mb-8`}>
+          <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 sm:gap-6 mb-4 sm:mb-6">
+            <h1 className={`${TYPOGRAPHY.heading1} ${COLORS.textPrimary} drop-shadow-lg text-center sm:text-left`}>
+              Weather Forecast
+            </h1>
+            <div className="w-full sm:w-auto">
+              <AppBar />
+            </div>
+          </div>
+        </div>
+        
+        <SearchBarView
+          onSearch={handleSearch}
           onLocationSearch={handleLocationSearch}
+          isLoading={loading}
         />
+        
         {error ? (
-          <div className="text-center text-red-400 mb-4 sm:mb-6 md:mb-8 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 px-2">
-            <span className="text-xs sm:text-sm md:text-base">{error}</span>
-            <button 
-              onClick={() => setError('')}
-              className="px-4 py-2 sm:py-2.5 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-full text-xs sm:text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/50 min-h-[40px] touch-manipulation"
+          <div className={`text-center ${COLORS.textError} ${LAYOUT.sectionSpacing} flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 px-2`}>
+            <span className={TYPOGRAPHY.bodySmall}>{error}</span>
+            <button
+              onClick={clearError}
+              className={`px-4 py-2 sm:py-2.5 ${GLASSMORPHISM.bgLight} ${GLASSMORPHISM.bgHover} ${GLASSMORPHISM.bgActive} ${GLASSMORPHISM.roundedFull} ${TYPOGRAPHY.bodySmall} ${GLASSMORPHISM.transitionFast} focus:outline-none focus:ring-2 focus:ring-white/50 min-h-[40px] touch-manipulation`}
             >
               Try Again
             </button>
           </div>
         ) : loading ? (
-          <div className="text-center mb-4 sm:mb-6 md:mb-8">
+          <div className={`text-center ${LAYOUT.sectionSpacing}`}>
             <LoadingSpinner />
           </div>
         ) : weatherData ? (

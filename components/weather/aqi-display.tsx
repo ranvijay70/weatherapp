@@ -1,6 +1,7 @@
 'use client';
 
-import { AQIData } from '@/services/weatherService';
+import { AQIData } from '@/src/models/weather.model';
+import { GLASSMORPHISM, SPACING, TYPOGRAPHY, COLORS } from '@/src/utils/theme';
 
 interface AQIDisplayProps {
   aqi: AQIData | null;
@@ -61,8 +62,8 @@ export default function AQIDisplay({ aqi }: AQIDisplayProps) {
   const aqiInfo = getAqiStyling(numericAqi);
 
   return (
-    <div className="bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-white/20 shadow-xl">
-      <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-3 sm:mb-4 md:mb-6">Air Quality Index</h3>
+    <div className={`${GLASSMORPHISM.bg} ${GLASSMORPHISM.blur} ${GLASSMORPHISM.rounded} ${GLASSMORPHISM.border} ${GLASSMORPHISM.shadow} ${SPACING.md}`}>
+      <h3 className={`${TYPOGRAPHY.heading3} ${COLORS.textPrimary} mb-3 sm:mb-4 md:mb-6`}>Air Quality Index</h3>
       
       {/* Main AQI Display (US AQI 0–500) */}
       <div className={`${aqiInfo.bgColor} ${aqiInfo.borderColor} border-2 rounded-lg sm:rounded-xl p-4 sm:p-5 mb-4 sm:mb-6`}>

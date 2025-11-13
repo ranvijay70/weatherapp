@@ -1,7 +1,8 @@
 'use client';
 
-import { ForecastData } from '@/services/weatherService';
+import { ForecastData } from '@/src/models/weather.model';
 import { getWeatherIconUrl } from '@/lib/weather-icons';
+import { GLASSMORPHISM, SPACING, TYPOGRAPHY, COLORS } from '@/src/utils/theme';
 
 interface DailyForecastProps {
   forecast: ForecastData;
@@ -57,33 +58,33 @@ export default function DailyForecast({ forecast }: DailyForecastProps) {
   };
 
   return (
-    <div className="bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-white/20 shadow-xl">
-      <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-3 sm:mb-4 md:mb-6">5-Day Forecast</h3>
+    <div className={`${GLASSMORPHISM.bg} ${GLASSMORPHISM.blur} ${GLASSMORPHISM.rounded} ${GLASSMORPHISM.border} ${GLASSMORPHISM.shadow} ${SPACING.md}`}>
+      <h3 className={`${TYPOGRAPHY.heading3} ${COLORS.textPrimary} mb-3 sm:mb-4 md:mb-6`}>5-Day Forecast</h3>
       <div className="space-y-2 sm:space-y-3">
         {dailyForecast.map((day, index) => (
           <div
             key={index}
-            className="flex items-center justify-between bg-white/5 rounded-lg sm:rounded-xl p-3 sm:p-4 backdrop-blur-sm border border-white/10 hover:bg-white/10 active:bg-white/15 transition-all"
+            className={`flex items-center justify-between ${GLASSMORPHISM.bgLight} ${GLASSMORPHISM.roundedSmall} p-3 sm:p-4 ${GLASSMORPHISM.blurLight} ${GLASSMORPHISM.borderLight} ${GLASSMORPHISM.bgHover} ${GLASSMORPHISM.bgActive} ${GLASSMORPHISM.transition}`}
           >
-            <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-1 min-w-0">
-              <p className="text-xs sm:text-sm md:text-base text-white font-medium w-20 sm:w-24 md:w-32 flex-shrink-0">
+            <div className={`flex items-center ${SPACING.gapSm} flex-1 min-w-0`}>
+              <p className={`text-xs sm:text-sm md:text-base ${COLORS.textPrimary} font-medium w-20 sm:w-24 md:w-32 flex-shrink-0`}>
                 {formatDate(day.date)}
               </p>
               {day.icon && (
                 <img
                   src={getWeatherIconUrl(day.icon, '2x')}
                   alt={day.description || 'Weather'}
-                  className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex-shrink-0 transition-transform duration-300 hover:scale-110"
+                  className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 flex-shrink-0 ${GLASSMORPHISM.transition} hover:scale-110`}
                   loading="lazy"
                 />
               )}
-              <p className="text-xs sm:text-sm text-gray-300 capitalize hidden md:block flex-1 truncate">
+              <p className={`text-xs sm:text-sm ${COLORS.textTertiary} capitalize hidden md:block flex-1 truncate`}>
                 {day.description}
               </p>
             </div>
-            <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
-              <p className="text-sm sm:text-base md:text-lg font-semibold text-white">{day.maxTemp}°</p>
-              <p className="text-xs sm:text-sm md:text-base text-gray-400">{day.minTemp}°</p>
+            <div className={`flex items-center ${SPACING.gapSm} flex-shrink-0`}>
+              <p className={`text-sm sm:text-base md:text-lg font-semibold ${COLORS.textPrimary}`}>{day.maxTemp}°</p>
+              <p className={`text-xs sm:text-sm md:text-base ${COLORS.textTertiary}`}>{day.minTemp}°</p>
             </div>
           </div>
         ))}
