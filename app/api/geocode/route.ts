@@ -25,13 +25,23 @@ export async function GET(req: Request) {
     });
 
     // Shape: [{ name, local_names, lat, lon, country, state }]
-    const suggestions = (Array.isArray(data) ? data : []).map((item: any) => ({
+    interface GeocodeItem {
+      name?: string;
+      country?: string;
+      state?: string;
+      lat?: number;
+      lon?: number;
+    }
+    
+    const suggestions = (Array.isArray(data) ? data : []).map((item: GeocodeItem) => ({
       name: item?.name || '',
       country: item?.country || '',
       state: item?.state || '',
       lat: item?.lat,
       lon: item?.lon,
-    })).filter((s: any) => typeof s.lat === 'number' && typeof s.lon === 'number');
+    })).filter((s): s is { name: string; country: string; state: string; lat: number; lon: number } => 
+      typeof s.lat === 'number' && typeof s.lon === 'number'
+    );
 
     return NextResponse.json({ suggestions });
   } catch (err) {

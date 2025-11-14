@@ -35,37 +35,70 @@ A responsive weather application built with Next.js App Router and Tailwind CSS.
    ```
 4. Open the app at `http://localhost:3000`.
 
-### Folder Structure
+### Folder Structure (MVVM Architecture)
 ```
 weather-app/
   app/
-    api/weather/route.ts      # API route proxying OpenWeather
-    globals.css               # Tailwind v4 styles
+    api/
+      geocode/route.ts        # Geocoding API route
+      weather/route.ts        # Weather API route
+    map/page.tsx              # Weather map page
+    settings/page.tsx         # Settings page
     layout.tsx                # Root layout
     page.tsx                  # Home page
-  components/
-    SearchBar.tsx             # Search input with debounced onChange + geolocation
-    WeatherDisplay.tsx        # Main weather card and sections
-    ui/
-      no-data-found.tsx       # Empty state component
-    weather/
-      aqi-display.tsx         # AQI panel
-      daily-forecast.tsx      # 5-day forecast list
-      hourly-forecast.tsx     # 24-hour forecast list
-  hooks/
-    use-weather.ts            # Reusable weather fetching hook (optional)
   lib/
-    api-client.ts             # Axios client with retries and error normalization
-    weather-icons.ts          # Icon/gradient helpers
-  services/
-    weatherService.ts         # Types for Weather, Forecast, AQI
+    api-client.ts             # Centralized Axios client with retries/timeout
+    weather-icons.ts          # Weather icon utilities
+  src/
+    components/               # View components (UI only)
+      layout/
+        AppBar.view.tsx       # App navigation bar
+      map/
+        MapEventHandler.tsx   # Map event handlers
+        MapSearch.tsx         # Map search component
+      ui/
+        Button.tsx            # Reusable button
+        Card.tsx              # Reusable card
+        Input.tsx             # Reusable input
+        LoadingSpinner.view.tsx
+        no-data-found.tsx     # Empty state
+      weather/
+        SearchBar.view.tsx    # Search bar with suggestions
+        WeatherDisplay.view.tsx
+        aqi-display.tsx
+        daily-forecast.tsx
+        hourly-forecast.tsx
+        hourly-forecast-graph.tsx
+    config/
+      api.config.ts           # Server-side API configuration (env vars)
+      api.constants.ts        # Client-safe API constants
+    hooks/
+      use-auto-location.hook.ts
+      use-location.hook.ts
+    models/                   # Data models/types
+      location.model.ts
+      settings.model.ts
+      weather.model.ts
+    services/                 # Business logic layer
+      location.service.ts
+      settings.service.ts
+      weather.service.ts
+    utils/
+      constants.ts            # Application constants
+      formatters.ts           # Data formatting utilities
+      theme.ts                # Design system constants
+    viewmodels/               # ViewModels (state management)
+      map.viewmodel.ts
+      settings.viewmodel.ts
+      weather.viewmodel.ts
   README.md
 ```
 
-Notes:
-- Duplicate/legacy files have been removed to avoid repetition:
-  - `src/hooks/use-weather.ts` (duplicate of `hooks/use-weather.ts`)
-  - `components/DailyForecast.tsx` and `components/HourlyForecast.tsx` (superseded by `components/weather/*`)
+**Architecture Notes:**
+- **MVVM Pattern**: Models (data), Views (components), ViewModels (state/logic)
+- **Separation of Concerns**: Services handle API calls, ViewModels manage state, Views render UI
+- **No Duplication**: API keys/URLs centralized in `src/config/api.config.ts`
+- **Consistent Structure**: All ViewModels follow class-based pattern with hooks
 
 ### API Route
 `app/api/weather/route.ts` uses the shared Axios client in `lib/api-client.ts` to call OpenWeather endpoints for current weather, forecast, and (optionally) AQI. It validates inputs and returns normalized JSON consumed by the UI.
@@ -84,6 +117,13 @@ Mobile considerations:
 - No duplicate code or unused legacy components
 - Clear, descriptive names and early returns
 - Minimal, meaningful comments and small, focused components
+
+### Reusability & Responsiveness
+- **Reusable Components**: All UI components (`Card`, `Button`, `Input`, etc.) are fully reusable with configurable props
+- **Responsive Design**: Mobile-first approach with consistent breakpoints (sm, md, lg, xl)
+- **Theme System**: Centralized design tokens in `src/utils/theme.ts` for consistent styling
+- **Component Props**: All components extend standard HTML attributes for maximum flexibility
+- **Responsive Utilities**: Pre-defined responsive classes for text, padding, margins, and spacing
 
 ### Environment Variables
 - `OPENWEATHER_BASE_URL` (required) - Base URL for weather API (e.g., `https://api.openweathermap.org/data/2.5`)

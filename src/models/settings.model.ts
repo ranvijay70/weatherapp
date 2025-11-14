@@ -1,7 +1,3 @@
-/**
- * Settings Models
- * Contains all data structures related to app settings
- */
 
 export type TemperatureUnit = 'metric' | 'imperial';
 

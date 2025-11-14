@@ -4,7 +4,7 @@
  */
 
 import { Coordinates, LocationSuggestion, IPLocationData } from '@/src/models/location.model';
-import { API_ENDPOINTS, IP_LOCATION_API, GEOLOCATION_OPTIONS } from '@/src/utils/constants';
+import { IP_LOCATION_API, GEOLOCATION_OPTIONS } from '@/src/utils/constants';
 import { CLIENT_API_ROUTES } from '@/src/config/api.constants';
 
 export class LocationService {

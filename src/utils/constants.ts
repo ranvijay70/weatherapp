@@ -3,10 +3,9 @@
  * Note: API endpoints and URLs are now centralized in src/config/api.config.ts
  */
 
-import { CLIENT_API_ROUTES, IP_LOCATION_API } from '@/src/config/api.constants';
+import { IP_LOCATION_API } from '@/src/config/api.constants';
 
-// Re-export for backward compatibility
-export const API_ENDPOINTS = CLIENT_API_ROUTES;
+// Re-export IP_LOCATION_API for convenience
 export { IP_LOCATION_API };
 
 export const GEOLOCATION_OPTIONS = {

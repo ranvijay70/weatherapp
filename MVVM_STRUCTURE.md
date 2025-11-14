@@ -13,7 +13,8 @@ weather-app/
 │   │   └── location.model.ts
 │   ├── viewmodels/          # Business logic and state management
 │   │   ├── weather.viewmodel.ts
-│   │   └── settings.viewmodel.ts
+│   │   ├── settings.viewmodel.ts
+│   │   └── map.viewmodel.ts
 │   ├── services/            # API calls and external services
 │   │   ├── weather.service.ts
 │   │   ├── location.service.ts
@@ -37,8 +38,10 @@ weather-app/
 │   │   └── page.tsx
 │   └── settings/
 │       └── page.tsx
-├── components/               # Legacy components (being migrated)
-└── services/                # Legacy services (being migrated)
+├── lib/                      # Shared libraries
+│   ├── api-client.ts        # Centralized API client
+│   └── weather-icons.ts     # Weather icon utilities
+└── app/                      # Next.js App Router pages
 ```
 
 ## Architecture Layers
@@ -55,11 +58,13 @@ weather-app/
 
 - `weather.viewmodel.ts`: Manages weather data fetching and state
 - `settings.viewmodel.ts`: Manages settings state and persistence
+- `map.viewmodel.ts`: Manages map state and interactions
 
 **Key Features**:
-- Separates business logic from UI
+- Class-based pattern with private state management
 - Provides hooks for easy consumption in components
 - Handles data transformation and validation
+- Uses `useRef` to persist ViewModel instances across renders
 
 ### 3. Services (`src/services/`)
 **Purpose**: API calls, external service integration
@@ -150,14 +155,16 @@ export class WeatherService {
 ## Migration Status
 
 - ✅ Models created and migrated
-- ✅ ViewModels created
+- ✅ ViewModels created (all follow class-based pattern)
 - ✅ Services refactored
 - ✅ Custom hooks created
 - ✅ Reusable UI components created
 - ✅ Home page migrated to MVVM
 - ✅ Settings page migrated to MVVM
-- ⏳ Map page (to be migrated)
-- ⏳ Legacy components (being migrated gradually)
+- ✅ Map page migrated to MVVM
+- ✅ All legacy components removed
+- ✅ API configuration centralized
+- ✅ No code duplication
 
 ## Next Steps
 

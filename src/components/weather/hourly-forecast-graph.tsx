@@ -32,15 +32,28 @@ export default function HourlyForecastGraph({ forecast }: HourlyForecastGraphPro
     return null;
   }
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  interface TooltipProps {
+    active?: boolean;
+    payload?: Array<{
+      payload: {
+        time: string;
+        temp: number;
+        feelsLike: number;
+        humidity: number;
+        description: string;
+      };
+    }>;
+  }
+
+  const CustomTooltip = ({ active, payload }: TooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-slate-900/95 backdrop-blur-md border border-white/20 rounded-lg p-3 shadow-xl">
-          <p className="text-white font-semibold mb-1">{data.time}</p>
-          <p className="text-white text-sm">Temperature: <span className="font-bold">{data.temp}°</span></p>
-          <p className="text-gray-300 text-sm">Feels like: <span className="font-semibold">{data.feelsLike}°</span></p>
-          <p className="text-gray-300 text-sm">Humidity: <span className="font-semibold">{data.humidity}%</span></p>
+        <div className="bg-slate-900/95 backdrop-blur-md border border-white/20 rounded-lg p-2 sm:p-3 shadow-xl">
+          <p className="text-white font-semibold mb-1 text-sm sm:text-base">{data.time}</p>
+          <p className="text-white text-xs sm:text-sm">Temperature: <span className="font-bold">{data.temp}°</span></p>
+          <p className="text-gray-300 text-xs sm:text-sm">Feels like: <span className="font-semibold">{data.feelsLike}°</span></p>
+          <p className="text-gray-300 text-xs sm:text-sm">Humidity: <span className="font-semibold">{data.humidity}%</span></p>
           <p className="text-gray-300 text-xs capitalize mt-1">{data.description}</p>
         </div>
       );
@@ -64,14 +77,15 @@ export default function HourlyForecastGraph({ forecast }: HourlyForecastGraphPro
             <XAxis 
               dataKey="time" 
               stroke="#e5e7eb"
-              style={{ fontSize: '12px' }}
+              style={{ fontSize: 'clamp(10px, 2vw, 12px)' }}
               tick={{ fill: '#e5e7eb' }}
+              interval="preserveStartEnd"
             />
             <YAxis 
               stroke="#e5e7eb"
-              style={{ fontSize: '12px' }}
+              style={{ fontSize: 'clamp(10px, 2vw, 12px)' }}
               tick={{ fill: '#e5e7eb' }}
-              label={{ value: '°C', angle: -90, position: 'insideLeft', fill: '#e5e7eb' }}
+              label={{ value: '°C', angle: -90, position: 'insideLeft', fill: '#e5e7eb', style: { fontSize: 'clamp(10px, 2vw, 12px)' } }}
             />
             <Tooltip content={<CustomTooltip />} />
             <Area
@@ -91,10 +105,10 @@ export default function HourlyForecastGraph({ forecast }: HourlyForecastGraphPro
         {hourlyData.map((item, index) => (
           <div
             key={index}
-            className={`flex flex-col items-center ${GLASSMORPHISM.bgLight} ${GLASSMORPHISM.roundedSmall} p-2 min-w-[60px] ${GLASSMORPHISM.blurLight} ${GLASSMORPHISM.borderLight}`}
+            className={`flex flex-col items-center ${GLASSMORPHISM.bgLight} ${GLASSMORPHISM.roundedSmall} p-2 sm:p-2.5 min-w-[60px] sm:min-w-[70px] ${GLASSMORPHISM.blurLight} ${GLASSMORPHISM.borderLight}`}
           >
-            <p className={`text-xs ${COLORS.textTertiary} mb-1`}>{item.time}</p>
-            <p className={`text-sm font-semibold ${COLORS.textPrimary}`}>{item.temp}°</p>
+            <p className={`text-xs sm:text-sm ${COLORS.textTertiary} mb-1`}>{item.time}</p>
+            <p className={`text-sm sm:text-base font-semibold ${COLORS.textPrimary}`}>{item.temp}°</p>
           </div>
         ))}
       </div>

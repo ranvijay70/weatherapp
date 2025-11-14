@@ -218,7 +218,7 @@ export function getApiClient(): ApiClient {
     
     // Use dynamic import to avoid issues with environment variables
     const { OPENWEATHER_CONFIG } = require('@/src/config/api.config');
-    
+
     apiClientInstance = createApiClient({
       baseURL: OPENWEATHER_CONFIG.BASE_URL,
       apiKey: OPENWEATHER_CONFIG.API_KEY,

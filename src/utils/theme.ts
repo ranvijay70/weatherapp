@@ -73,6 +73,11 @@ export const LAYOUT = {
   containerMaxWidthSmall: 'max-w-2xl',
   containerPadding: 'p-3 sm:p-4 md:p-6 lg:p-8',
   sectionSpacing: 'mb-4 sm:mb-6 md:mb-8',
+  // Responsive utilities
+  responsiveText: 'text-sm sm:text-base md:text-lg',
+  responsiveHeading: 'text-xl sm:text-2xl md:text-3xl lg:text-4xl',
+  responsivePadding: 'p-3 sm:p-4 md:p-5 lg:p-6',
+  responsiveMargin: 'm-2 sm:m-3 md:m-4 lg:m-6',
 } as const;
 
 // Colors - Original dark theme design (always dark)
