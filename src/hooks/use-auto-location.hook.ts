@@ -7,6 +7,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Coordinates } from '@/src/models/location.model';
 import { LocationService } from '@/src/services/location.service';
 import { SettingsService } from '@/src/services/settings.service';
+import { logger } from '@/src/utils/logger';
 
 export function useAutoLocation(
   onLocationFound: (coords: Coordinates) => void,
@@ -31,7 +32,7 @@ export function useAutoLocation(
         onLocationFound(coords);
       }
     } catch (error) {
-      console.log('Auto-location failed:', error);
+      logger.warn('Auto-location failed:', error);
     }
   }, [enabled, hasAttempted, onLocationFound]);
 

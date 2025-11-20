@@ -8,6 +8,7 @@ import { WeatherService } from '@/src/services/weather.service';
 import { LocationService } from '@/src/services/location.service';
 import { WeatherData } from '@/src/models/weather.model';
 import { Coordinates } from '@/src/models/location.model';
+import { logger } from '@/src/utils/logger';
 
 export interface MapState {
   lat: number;
@@ -66,7 +67,7 @@ export class MapViewModel {
       }));
     } catch (error) {
       // Use default location (already set in initial state)
-      console.warn('Failed to get location, using default');
+      logger.warn('Failed to get location, using default');
     }
   }
 
@@ -113,7 +114,7 @@ export class MapViewModel {
         loadingWeather: false,
       }));
     } catch (error) {
-      console.error('Failed to fetch weather:', error);
+      logger.error('Failed to fetch weather:', error);
       this._setState((prev) => ({
         ...prev,
         weatherInfo: null,

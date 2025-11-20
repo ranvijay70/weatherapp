@@ -12,6 +12,7 @@ import { SEARCH_DEBOUNCE_MS, MIN_SEARCH_LENGTH, MAX_SUGGESTIONS } from '@/src/ut
 import { Input } from '@/src/components/ui/Input';
 import { Button } from '@/src/components/ui/Button';
 import { GLASSMORPHISM, SPACING, COLORS } from '@/src/utils/theme';
+import { logger } from '@/src/utils/logger';
 
 export interface SearchBarViewProps {
   onSearch: (city: string) => void;
@@ -85,7 +86,7 @@ export const SearchBarView: React.FC<SearchBarViewProps> = ({
         onLocationSearch(coords.lat, coords.lon);
       })
       .catch((error) => {
-        console.error('Error getting location:', error);
+        logger.error('Error getting location:', error);
         alert('Unable to retrieve your location. Please enable location services.');
       });
   };

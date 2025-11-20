@@ -5,6 +5,7 @@
 
 import { AppSettings, DEFAULT_SETTINGS } from '@/src/models/settings.model';
 import { STORAGE_KEYS } from '@/src/utils/constants';
+import { logger } from '@/src/utils/logger';
 
 export class SettingsService {
   /**
@@ -33,7 +34,7 @@ export class SettingsService {
         notifications,
       };
     } catch (error) {
-      console.error('Error loading settings:', error);
+      logger.error('Error loading settings:', error);
       return DEFAULT_SETTINGS;
     }
   }
@@ -57,7 +58,7 @@ export class SettingsService {
         localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, settings.notifications.toString());
       }
     } catch (error) {
-      console.error('Error saving settings:', error);
+      logger.error('Error saving settings:', error);
     }
   }
 

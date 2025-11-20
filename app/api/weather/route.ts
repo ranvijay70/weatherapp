@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { getApiClient } from '@/lib/api-client';
 import { API_ENDPOINTS } from '@/src/config/api.constants';
+import { logger } from '@/src/utils/logger';
 
 // Force Node.js runtime to ensure env vars are available
 export const runtime = 'nodejs';
@@ -78,7 +79,7 @@ export async function GET(req: Request) {
         });
       } catch (aqiError) {
         // AQI is optional, so we don't fail the entire request if it fails
-        console.warn('Failed to fetch AQI data:', aqiError);
+        logger.warn('Failed to fetch AQI data:', aqiError);
       }
     }
 

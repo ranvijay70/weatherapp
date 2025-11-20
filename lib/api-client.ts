@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
+import { logger } from '@/src/utils/logger';
 
 interface RetryConfig {
   retries: number;
@@ -51,14 +52,12 @@ export class ApiClient {
         config.headers = config.headers || {};
         
         // Log request in development
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
-        }
+        logger.info(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
 
         return config;
       },
       (error: AxiosError) => {
-        console.error('[API Request Error]', error);
+        logger.error('[API Request Error]', error);
         return Promise.reject(error);
       }
     );
@@ -67,9 +66,7 @@ export class ApiClient {
     this.client.interceptors.response.use(
       (response) => {
         // Log response in development
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`[API Response] ${response.config.method?.toUpperCase()} ${response.config.url}`, response.status);
-        }
+        logger.info(`[API Response] ${response.config.method?.toUpperCase()} ${response.config.url}`, response.status);
         return response;
       },
       async (error: AxiosError) => {
@@ -127,9 +124,7 @@ export class ApiClient {
     // Increment retry count
     config._retryCount = retryCount + 1;
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[API Retry] Attempt ${config._retryCount} for ${config.url}`);
-    }
+    logger.info(`[API Retry] Attempt ${config._retryCount} for ${config.url}`);
 
     return this.client.request(config);
   }
@@ -229,7 +224,7 @@ export function getApiClient(): ApiClient {
 
   return apiClientInstance;
 }
-
+ 
 // Geocode API client (different base URL)
 export function getGeocodeClient(): ApiClient {
   if (!geocodeClientInstance) {
@@ -254,4 +249,4 @@ export function getGeocodeClient(): ApiClient {
 
 // Export types
 export type { ApiClientConfig, RetryConfig };
-
+ 

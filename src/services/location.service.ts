@@ -6,6 +6,7 @@
 import { Coordinates, LocationSuggestion, IPLocationData } from '@/src/models/location.model';
 import { IP_LOCATION_API, GEOLOCATION_OPTIONS } from '@/src/utils/constants';
 import { CLIENT_API_ROUTES } from '@/src/config/api.constants';
+import { logger } from '@/src/utils/logger';
 
 export class LocationService {
   /**
@@ -71,7 +72,7 @@ export class LocationService {
       const data = await response.json();
       return Array.isArray(data?.suggestions) ? data.suggestions : [];
     } catch (error) {
-      console.error('Location search error:', error);
+      logger.error('Location search error:', error);
       return [];
     }
   }
@@ -85,7 +86,7 @@ export class LocationService {
       return await this.getCurrentLocation();
     } catch (error) {
       // Fallback to IP-based location
-      console.log('Geolocation failed, trying IP-based location...');
+      logger.warn('Geolocation failed, trying IP-based location...');
       try {
         const ipData = await this.getLocationByIP();
         return {
