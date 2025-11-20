@@ -118,6 +118,11 @@ Mobile considerations:
 - Clear, descriptive names and early returns
 - Minimal, meaningful comments and small, focused components
 
+### Error Handling & Diagnostics
+- **Global Error Boundary**: `app/error.tsx` shows a glassmorphic fallback with retry/home actions and logs the error via the shared logger so crashes no longer white-screen the app.
+- **Centralized Logger**: `src/utils/logger.ts` wraps `console.*` and suppresses info/warn noise in production while always emitting errors, keeping diagnostics consistent across services, hooks, and components.
+- **Stateful Errors**: ViewModels expose `error` fields so UI components can render contextual messaging and recovery buttons without hitting the console.
+
 ### Reusability & Responsiveness
 - **Reusable Components**: All UI components (`Card`, `Button`, `Input`, etc.) are fully reusable with configurable props
 - **Responsive Design**: Mobile-first approach with consistent breakpoints (sm, md, lg, xl)
